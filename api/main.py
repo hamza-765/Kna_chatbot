@@ -1,7 +1,6 @@
-from fastapi import FastAPI, Request, BackgroundTasks  # <-- Added BackgroundTasks
-from fastapi.responses import HTMLResponse, Response  
+from fastapi import FastAPI, Request, BackgroundTasks  
+from fastapi.responses import HTMLResponse 
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime  
 import logging
 import re 
 import os
@@ -73,7 +72,6 @@ PRICES = {
     "hp spectre x360 13.5": {"display_name": "HP Spectre x360 13.5", "price": "Rs. 230,000 - 290,000"}
 }
 
-# Async worker helper to prevent database engine hanging
 async def save_order_async(order_id, session_id, items, total_amount, name, address):
     try:
         await database.create_order(
@@ -105,11 +103,12 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
         # ----------------------------------------------------
         # INTENT FIX: FORCE PRICE/BUDGET INTERCEPTION
         # ----------------------------------------------------
-        # Catch words like price/cost OR patterns like "under 20k", "less than 50000"
-        has_price_keyword = any(word in query_text for word in ["price", "cost", "how much"])
-        has_budget_constraint = any(word in query_text for word in ["under", "below", "less than", "budget", "k"]) and any(char.isdigit() for char in query_text)
+        has_price_keyword = any(word in query_text for word in ["price", "cost", "how much", "rate", "value"])
+        has_search_keyword = any(word in query_text for word in ["need", "want", "show me", "looking for", "find", "check", "do you have"])
+        has_budget_constraint = any(word in query_text for word in ["under", "below", "less than", "budget", "around"]) or (any(char.isdigit() for char in query_text) and "k" in query_text)
 
-        if has_price_keyword or has_budget_constraint:
+        if has_price_keyword or has_budget_constraint or has_search_keyword:
+            # Seal it within the catalog lookups away from fallbacks or tracking loops
             intent = "Check_Price_Intent"
 
         # ----------------------------------------------------
@@ -136,10 +135,8 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                     f"Removed {product} from your cart."
                 )
             
-            # Write to database and wait for it to finish
             await database.add_item_to_cart(session_id, product, quantity)
             
-            # Construct multi-line message clearly
             bot_msg = (
                 f"Added {quantity}x {product} to your cart.\n"
                 f"Anything else you'd like to add or remove?\n"
@@ -161,7 +158,6 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 prices_registry=PRICES
             )
 
-        
         # ----------------------------------------------------
         # PRICE CHECK & BUDGET CONSTRAINTS
         # ----------------------------------------------------
@@ -169,70 +165,88 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             user_input = params.get("product") or params.get("products")
 
             if not user_input:
-                # Clean out common question prefixes to extract the raw product name
+                # Cleaner Regex: Strips contextual prefixes WITHOUT deleting hardware structural numbers/letters
                 cleaned = re.sub(
-                    r"\b(tell me|show me|price of|what is|check|need|under|below|budget|\d+k|\d+)\b",
+                    r"\b(tell me|show me|price of|what is|check|need|want|under|below|budget|looking for|find|do you have)\b",
                     "",
                     query_text
                 )
+                # Safely strip budget tags like "under 20k" or "20k"
+                cleaned = re.sub(r"\b\d+\s*k\b", "", cleaned)
+                cleaned = re.sub(r"\b\d+\b", "", cleaned)
                 user_input = cleaned.strip()
 
-            if not user_input:
+            if not user_input or len(user_input) < 2:
                 return services.build_fulfillment_response(
-                    "Which product would you like to check out?"
+                    "Which product or graphics card are you looking for?"
                 )
 
             clean_input = str(user_input).lower().strip()
             best_match = None
 
+            # CRITICAL BOUNDARY FIX: Split words up to check if hardware codes (e.g. "570") precisely match keys
+            input_tokens = re.findall(r'[a-z0-9]+', clean_input)
+            
             for key in PRICES:
-                if clean_input in key or key in clean_input:
+                key_tokens = re.findall(r'[a-z0-9]+', key)
+                # Ensure all parts of user query token actually intersect correctly
+                match_count = sum(1 for token in input_tokens if token in key_tokens)
+                if match_count > 0 and len(input_tokens) <= len(key_tokens):
+                    # Prioritize exact sub-token string integrity
                     best_match = key
                     break
 
-            # CASE 1: The product was found in your inventory registry
+            # CASE 1: Found inside inventory
             if best_match:
                 product = PRICES[best_match]
                 
-                # Check if user mentioned an impossible budget constraint
-                if "5090" in best_match and "under" in query_text:
-                    return services.build_fulfillment_response(
-                        f"The {product['display_name']} is currently priced around {product['price']}. "
-                        f"Unfortunately, it is not available under your specified budget."
-                    )
+                # Dynamic Budget Verification 
+                budget_match = re.search(r'(\d+)\s*k', query_text)
+                if budget_match:
+                    user_budget = int(budget_match.group(1)) * 1000
+                    try:
+                        raw_market_price = product['price'].replace("Rs.", "").replace("(Used)", "").split("-")[0].replace(",", "").strip()
+                        market_min_price = int(raw_market_price)
+                        
+                        if "under" in query_text or "below" in query_text or "budget" in query_text:
+                            if user_budget < market_min_price:
+                                return services.build_fulfillment_response(
+                                    f"The {product['display_name']} is currently priced around {product['price']}. "
+                                    f"Unfortunately, it is not available under your specified budget."
+                                )
+                    except:
+                        pass
                 
                 return services.build_fulfillment_response(
                     f"The estimated price of {product['display_name']} is {product['price']}."
                 )
 
-            # CASE 2: The product is NOT in your inventory registry (e.g., Quadro P600)
-            # Find alternative items from your PRICES list that actually fit their "under Xk" budget!
+            # CASE 2: Not in inventory registry (e.g., RX 570, RX 470)
             budget_match = re.search(r'(\d+)\s*k', query_text)
             if budget_match:
                 user_budget = int(budget_match.group(1)) * 1000
                 alternatives = []
 
-                # Scan registry for things close to or within their budget parameters
                 for key, data in PRICES.items():
                     try:
                         raw_price = data["price"].replace("Rs.", "").replace("(Used)", "").split("-")[0].replace(",", "").strip()
-                        if int(raw_price) <= user_budget + 15000:  # Show things within or slightly above budget
+                        if int(raw_price) <= user_budget + 10000:  
                             alternatives.append(data["display_name"])
                     except:
                         continue
 
                 if alternatives:
-                    alt_list = ", ".join(alternatives[:3]) # Grab top 3 options
+                    alt_list = ", ".join(alternatives[:3])
                     return services.build_fulfillment_response(
-                        f"I currently don't have pricing data or stock for '{user_input}'.\n\n"
-                        f"However, since you're looking for items under your specified budget, "
-                        f"you might want to check out: {alt_list}."
+                        f"I currently don't have pricing data or active stock for '{user_input}'.\n\n"
+                        f"However, since you are looking for items around that range, "
+                        f"here are alternatives under or close to your budget: {alt_list}."
                     )
 
-            # Default safe fallback response if no alternative can be calculated
             return services.build_fulfillment_response(
-                f"I couldn't find '{user_input}' in our component catalog, and I don't currently have active pricing info for it."
+                f"I couldn't find pricing or stock data for '{user_input}' in our warehouse inventory catalog."
             )
+
         # ----------------------------------------------------
         # CLEAR CART
         # ----------------------------------------------------
@@ -253,9 +267,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
         # CHECKOUT
         # ----------------------------------------------------
         elif intent == "Checkout_Confirmed":
-            print("\n--- CHECKOUT STARTED ---")
             cart = await database.get_cart(session_id)
-            print(f"Cart retrieved for session {session_id}: {cart}")
 
             if not cart or not cart.get("items"):
                 return services.build_fulfillment_response(
@@ -269,7 +281,6 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             for context in output_contexts:
                 if "awaiting_checkout_confirmation" in context.get("name", "").lower():
                     context_params = context.get("parameters", {})
-                    print(f"Found checkout context parameters: {context_params}")
                     
                     name_param = context_params.get("name")
                     customer_name = name_param.get("name") if isinstance(name_param, dict) else name_param
@@ -291,10 +302,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 top_addr = params.get("address")
                 customer_address = top_addr.get("street-address") if isinstance(top_addr, dict) else top_addr
 
-            print(f"Extracted Customer: {customer_name} | Address: {customer_address}")
-
             if not customer_name or not customer_address:
-                print("❌ Checkout failed: Missing customer name or address.")
                 return services.build_fulfillment_response(
                     "I see you want to checkout, but I couldn't find your delivery details. "
                     "Could you please tell me your name and shipping address?"
@@ -319,14 +327,12 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                             )
                             matched_price = int(raw_price)
                         except Exception as e:
-                            print(f"Error parsing price for {key}: {e}")
                             matched_price = 0
                         break
 
                 total_amount += matched_price * quantity
 
             order_id = services.generate_order_id()
-            print(f"Generated Order ID: {order_id} | Total: Rs. {total_amount}")
 
             background_tasks.add_task(
                 save_order_async,
