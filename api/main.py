@@ -196,13 +196,13 @@ try:
                 elif any(w in norm_query for w in ["laptop", "notebook"]):
                     category = "laptop"
             
-            # FIX: Fallback checks to handle both underscore and hyphen naming styles from Dialogflow
+            # Fallback checks to handle both underscore and hyphen naming styles from Dialogflow
             budget_k = params.get("budget_k") or params.get("budget-k")      
             budget_num = params.get("budget_num") or params.get("budget-num")  
             
             budget_limit = None
 
-            # Parse based on whichever parameter Dialogflow populated
+            # 1. Try parsing from Dialogflow's structured parameters first
             if budget_k:
                 try:
                     budget_limit = int(str(budget_k).lower().replace('k', '').strip()) * 1000
@@ -214,7 +214,19 @@ try:
                 except ValueError:
                     pass
 
-            # EDGE-CASE UX: User provided a category but skipped defining a budget constraint (e.g. "need a gpu")
+            # FIX: If Dialogflow failed extraction and parameters are empty, manually extract from raw text
+            if budget_limit is None:
+                # Look for patterns like '10k', '50k', etc.
+                match_k = re.search(r'(\d+)\s*k', norm_query)
+                if match_k:
+                    budget_limit = int(match_k.group(1)) * 1000
+                else:
+                    # Look for plain numbers following budget context words (e.g., 'under 15000')
+                    match_num = re.search(r'(?:under|below|less than|budget|around)\s*(\d+)', norm_query)
+                    if match_num:
+                        budget_limit = int(match_num.group(1))
+
+            # EDGE-CASE UX: User provided a category but genuinely skipped defining a budget constraint (e.g. "need a gpu")
             if category and budget_limit is None:
                 all_category_items = []
                 for key, data in PRICES.items():
@@ -269,8 +281,8 @@ try:
                 return services.build_fulfillment_response(
                     f"I couldn't find any {category}s strictly under Rs. {budget_limit:,}. "
                     f"Would you like to see our full list of available products?"
-                )        
-
+                )
+                
         # ----------------------------------------------------
         # LIST AVAILABLE PRODUCTS
         # ----------------------------------------------------
