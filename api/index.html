@@ -1150,27 +1150,23 @@
         </div>
     </footer>
 
-<df-messenger
-    intent="WELCOME"
-    chat-title="KNA Assistant"
-    agent-id="65d13231-7d5f-41f4-8543-f4a9c6ae9c02"
-    language-code="en">
-</df-messenger>
+    <df-messenger intent="WELCOME" chat-title="KNA Assistant" agent-id="65d13231-7d5f-41f4-8543-f4a9c6ae9c02"
+        language-code="en">
+    </df-messenger>
 
-<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+    <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
 
 
     <script>
         // Hardware Data
         const skillsData = [
-            { name: "Nvidia GeForce RTX 5090", price: "$1,999.99", category: "gpu", badge: "Next-Gen Flagship", desc: "Absolute pinnacle of neural path-tracing domination." },
-            { name: "Nvidia GeForce RTX 4080 Super", price: "$999.99", category: "gpu", badge: "Premium 4K", desc: "Crush heavy ray-traced rendering tasks." },
-            { name: "AMD Radeon RX 7900 XTX", price: "$929.99", category: "gpu", badge: "AMD Flagship", desc: "Massive 24GB VRAM for raw 4K rasterization." },
-            { name: "ASUS ROG Zephyrus G14", price: "$1,599.99", category: "laptop", badge: "Premium Portability", desc: "High-frequency OLED panel with top-tier mobile silicon." },
-            { name: "Lenovo ThinkPad X1 Carbon", price: "$1,849.99", category: "laptop", badge: "Enterprise Standard", desc: "Ultralight carbon composite with Intel Core Ultra." },
-            { name: "Dell XPS 15", price: "$1,699.99", category: "laptop", badge: "Creator Flagship", desc: "Infinite display for heavy studio exports." }
+            { name: "Nvidia GeForce RTX 5090", price: "Rs. 1,350,000 - 1,450,000", category: "gpu", badge: "Next-Gen Flagship", desc: "Absolute pinnacle of neural path-tracing domination." },
+            { name: "Nvidia GeForce RTX 4080 Super", price: "Rs. 345,000 - 365,000", category: "gpu", badge: "Premium 4K", desc: "Crush heavy ray-traced rendering tasks." },
+            { name: "AMD Radeon RX 7900 XTX", price: "Rs. 310,000 - 330,000", category: "gpu", badge: "AMD Flagship", desc: "Massive 24GB VRAM for raw 4K rasterization." },
+            { name: "ASUS ROG Zephyrus G14", price: "Rs. 475,000 - 550,000", category: "laptop", badge: "Premium Portability", desc: "High-frequency OLED panel with top-tier mobile silicon." },
+            { name: "Lenovo ThinkPad X1 Carbon", price: "Rs. 420,000 - 490,000", category: "laptop", badge: "Enterprise Standard", desc: "Ultralight carbon composite with Intel Core Ultra." },
+            { name: "Dell XPS 15", price: "Rs. 390,000 - 460,000", category: "laptop", badge: "Creator Flagship", desc: "Infinite display for heavy studio exports." }
         ];
-
         function renderHardwareGrid(filter = "all") {
             const grid = document.getElementById("skillsGrid");
             if (!grid) return;
