@@ -1,11 +1,14 @@
 {
   "version": 2,
-  "functions": {
-    "api/main.py": {
-      "runtime": "python3.12",
-      "maxDuration": 60
+  "builds": [
+    {
+      "src": "api/main.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxDuration": 60
+      }
     }
-  },
+  ],
   "rewrites": [
     {
       "source": "/(.*)",
