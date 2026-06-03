@@ -161,6 +161,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 prices_registry=PRICES
             )
 
+        
         # ----------------------------------------------------
         # PRICE CHECK & BUDGET CONSTRAINTS
         # ----------------------------------------------------
@@ -189,6 +190,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                     best_match = key
                     break
 
+            # CASE 1: The product was found in your inventory registry
             if best_match:
                 product = PRICES[best_match]
                 
@@ -203,10 +205,34 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                     f"The estimated price of {product['display_name']} is {product['price']}."
                 )
 
-            return services.build_fulfillment_response(
-                f"No pricing data found for '{user_input}'."
-            )
+            # CASE 2: The product is NOT in your inventory registry (e.g., Quadro P600)
+            # Find alternative items from your PRICES list that actually fit their "under Xk" budget!
+            budget_match = re.search(r'(\d+)\s*k', query_text)
+            if budget_match:
+                user_budget = int(budget_match.group(1)) * 1000
+                alternatives = []
 
+                # Scan registry for things close to or within their budget parameters
+                for key, data in PRICES.items():
+                    try:
+                        raw_price = data["price"].replace("Rs.", "").replace("(Used)", "").split("-")[0].replace(",", "").strip()
+                        if int(raw_price) <= user_budget + 15000:  # Show things within or slightly above budget
+                            alternatives.append(data["display_name"])
+                    except:
+                        continue
+
+                if alternatives:
+                    alt_list = ", ".join(alternatives[:3]) # Grab top 3 options
+                    return services.build_fulfillment_response(
+                        f"I currently don't have pricing data or stock for '{user_input}'.\n\n"
+                        f"However, since you're looking for items under your specified budget, "
+                        f"you might want to check out: {alt_list}."
+                    )
+
+            # Default safe fallback response if no alternative can be calculated
+            return services.build_fulfillment_response(
+                f"I couldn't find '{user_input}' in our component catalog, and I don't currently have active pricing info for it."
+            )
         # ----------------------------------------------------
         # CLEAR CART
         # ----------------------------------------------------
