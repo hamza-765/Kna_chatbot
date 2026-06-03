@@ -1,0 +1,6 @@
+fastapi
+pymongo
+motor==3.6.0
+pydantic
+uvicorn
+python-dotenv

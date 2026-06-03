@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>KNA Computers | Premium GPUs & Laptops</title>
+
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        @charset "utf-8";
+
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-black: #0a0a0a;
+            --carbon-dark: #121212;
+            --carbon-medium: #1a1a1a;
+            --carbon-light: #2a2a2a;
+            --metal-dark: #3a3a3a;
+            --metal-light: #4a4a4a;
+            --accent-red: #ff3333;
+            --accent-blue: #00a8ff;
+            --accent-green: #00ff88;
+            --accent-purple: #9945ff;
+            --accent-cyan: #00ffff;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-dim: #808080;
+            --bg-card: #1a1a1a;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            position: relative;
+            z-index: 1;
+            overflow-x: visible !important;
+        }
+
+        body {
+            font-family: 'Orbitron', 'Rajdhani', sans-serif;
+            background: var(--primary-black);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Carbon Fiber Background Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255, 255, 255, 0.03) 2px, rgba(255, 255, 255, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(255, 255, 255, 0.03) 2px, rgba(255, 255, 255, 0.03) 4px),
+                linear-gradient(135deg, var(--primary-black) 0%, var(--carbon-dark) 25%, var(--carbon-medium) 50%, var(--carbon-dark) 75%, var(--primary-black) 100%);
+            z-index: -2;
+        }
+
+        /* Animated Grid Overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(rgba(255, 51, 51, 0.05) 2px, transparent 2px), linear-gradient(90deg, rgba(255, 51, 51, 0.05) 2px, transparent 2px);
+            background-size: 150px 150px;
+            animation: gridMove 20s linear infinite;
+            z-index: -1;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        @keyframes gridMove {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(150px, 150px);
+            }
+        }
+
+        /* Loading Screen */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--primary-black);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100000;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loader-content {
+            text-align: center;
+        }
+
+        .loader-prism {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            margin: 0 auto 30px;
+        }
+
+        .prism-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid transparent;
+            transform-origin: center;
+            animation: prismRotate 3s linear infinite;
+        }
+
+        .prism-face:nth-child(1) {
+            border-image: linear-gradient(45deg, var(--accent-red), var(--accent-blue)) 1;
+            animation-delay: 0s;
+        }
+
+        .prism-face:nth-child(2) {
+            border-image: linear-gradient(45deg, var(--accent-blue), var(--accent-green)) 1;
+            transform: rotate(60deg);
+            animation-delay: 0.2s;
+        }
+
+        .prism-face:nth-child(3) {
+            border-image: linear-gradient(45deg, var(--accent-green), var(--accent-purple)) 1;
+            transform: rotate(120deg);
+            animation-delay: 0.4s;
+        }
+
+        @keyframes prismRotate {
+            0% {
+                transform: rotate(0deg) scale(1);
+            }
+
+            50% {
+                transform: rotate(180deg) scale(1.2);
+            }
+
+            100% {
+                transform: rotate(360deg) scale(1);
+            }
+        }
+
+        /* Navigation Header */
+        .header {
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 99999;
+            position: fixed;
+            background: linear-gradient(180deg, rgba(18, 18, 18, 0.98) 0%, rgba(18, 18, 18, 0.9) 50%, rgba(18, 18, 18, 0) 100%);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .header.scrolled {
+            background: rgba(18, 18, 18, 0.98);
+            backdrop-filter: blur(30px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 30px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            margin-right: 15px;
+        }
+
+        .logo-prism {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .prism-shape {
+            width: 30px;
+            height: 30px;
+            transform: rotate(45deg);
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-blue), var(--accent-green), var(--accent-purple));
+            animation: prismShine 3s ease-in-out infinite;
+        }
+
+        @keyframes prismShine {
+
+            0%,
+            100% {
+                filter: brightness(1) hue-rotate(0deg);
+                transform: rotate(45deg) scale(1);
+            }
+
+            50% {
+                filter: brightness(1.5) hue-rotate(10deg);
+                transform: rotate(45deg) scale(1.1);
+            }
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .logo-text .prism {
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo-text .flux {
+            color: var(--text-secondary);
+            font-weight: 300;
+            margin-left: 5px;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-menu a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 12px 25px;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-weight: 500;
+            letter-spacing: 1px;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .nav-menu a::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            transition: width 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-menu a:hover::before,
+        .nav-menu a.active::before {
+            width: 80%;
+        }
+
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .menu-toggle span {
+            width: 30px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+            margin: 3px 0;
+            transition: 0.3s;
+            border-radius: 2px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 120px 20px 80px;
+            background: radial-gradient(ellipse at center, rgba(153, 69, 255, 0.1) 0%, transparent 50%);
+        }
+
+        .carousel-container {
+            width: 100%;
+            max-width: 1400px;
+            height: 600px;
+            perspective: 1200px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .carousel {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        .carousel-item {
+            position: absolute;
+            width: 380px;
+            height: 500px;
+            left: 50%;
+            top: 50%;
+            transform-style: preserve-3d;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .carousel-item .card {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--carbon-medium), var(--carbon-dark));
+            border: 2px solid var(--metal-dark);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .card-image {
+            width: 100%;
+            height: 190px;
+            background: var(--carbon-dark);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid var(--metal-dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1e1e2a;
+            font-size: 48px;
+        }
+
+        .card-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .card-tech {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .tech-badge {
+            padding: 4px 12px;
+            background: rgba(153, 69, 255, 0.1);
+            border: 1px solid var(--accent-purple);
+            border-radius: 20px;
+            font-size: 11px;
+            color: var(--accent-purple);
+        }
+
+        .card-cta {
+            padding: 10px 25px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .card-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(153, 69, 255, 0.5);
+        }
+
+        .carousel-controls {
+            position: absolute;
+            bottom: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .carousel-btn {
+            width: 50px;
+            height: 50px;
+            background: var(--carbon-medium);
+            border: 1px solid var(--metal-dark);
+            border-radius: 50%;
+            color: var(--accent-purple);
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .carousel-btn:hover {
+            border-color: var(--accent-purple);
+            transform: scale(1.1);
+        }
+
+        .carousel-indicators {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+        }
+
+        .indicator {
+            width: 10px;
+            height: 10px;
+            background: var(--metal-dark);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .indicator.active {
+            background: var(--accent-purple);
+            box-shadow: 0 0 8px var(--accent-purple);
+            transform: scale(1.3);
+        }
+
+        /* Philosophy Section */
+        .philosophy-section {
+            padding: 100px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .philosophy-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .prism-line {
+            width: 100%;
+            height: 2px;
+            margin: 0 auto 60px;
+            background: var(--carbon-medium);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prism-line::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--accent-red), var(--accent-blue), var(--accent-green), var(--accent-purple), transparent);
+            animation: prismSweep 4s ease-in-out infinite;
+        }
+
+        @keyframes prismSweep {
+            0% {
+                left: -100%;
+            }
+
+            100% {
+                left: 100%;
+            }
+        }
+
+        .philosophy-headline {
+            font-size: 52px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple), var(--accent-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 30px;
+        }
+
+        .philosophy-subheading {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin: 0 auto 60px;
+            line-height: 1.6;
+        }
+
+        .philosophy-pillars {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pillar {
+            background: rgba(42, 42, 42, 0.4);
+            border: 1px solid var(--metal-dark);
+            border-radius: 20px;
+            padding: 40px 30px;
+            width: 300px;
+            transition: 0.3s;
+        }
+
+        .pillar:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-purple);
+            box-shadow: 0 20px 40px rgba(153, 69, 255, 0.2);
+        }
+
+        .pillar-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .pillar-title {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .pillar-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Skills / Inventory Section */
+        .skills-section {
+            padding: 100px 30px;
+            background: var(--carbon-dark);
+        }
+
+        .skills-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-title {
+            font-size: 48px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, var(--text-primary), var(--accent-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 18px;
+            max-width: 600px;
+            margin: 20px auto 0;
+        }
+
+        .skill-categories {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+
+        .category-tab {
+            padding: 12px 30px;
+            background: var(--carbon-medium);
+            border: 1px solid var(--metal-dark);
+            border-radius: 30px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: 0.3s;
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        .category-tab:hover {
+            background: rgba(153, 69, 255, 0.1);
+            border-color: var(--accent-purple);
+            color: var(--text-primary);
+        }
+
+        .category-tab.active {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            border-color: var(--accent-purple);
+            color: var(--text-primary);
+        }
+
+        .skills-hexagon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            padding: 2rem 0;
+        }
+
+        .product-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--accent-purple);
+            transition: 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(153, 69, 255, 0.3);
+            border-color: var(--accent-cyan);
+        }
+
+        /* Stats Section */
+        .stats-section {
+            padding: 100px 30px;
+            background: var(--primary-black);
+        }
+
+        .stats-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(42, 42, 42, 0.5), rgba(26, 26, 26, 0.8));
+            border: 1px solid var(--metal-dark);
+            border-radius: 15px;
+            padding: 40px 30px;
+            text-align: center;
+            transition: 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--accent-purple);
+            box-shadow: 0 15px 35px rgba(153, 69, 255, 0.2);
+        }
+
+        .stat-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+        }
+
+        .stat-number {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--accent-cyan);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+        }
+
+        .stat-description {
+            font-size: 13px;
+            color: var(--text-dim);
+            line-height: 1.5;
+        }
+
+        /* Contact Section */
+        .contact-section {
+            padding: 100px 30px;
+            background: linear-gradient(180deg, var(--carbon-dark) 0%, var(--primary-black) 100%);
+        }
+
+        .contact-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+        }
+
+        .contact-info {
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(42, 42, 42, 0.3), rgba(26, 26, 26, 0.5));
+            border: 1px solid var(--metal-dark);
+            border-radius: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--carbon-dark);
+            border-radius: 10px;
+            transition: 0.3s;
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        .info-item:hover {
+            transform: translateX(10px);
+            background: rgba(153, 69, 255, 0.1);
+            box-shadow: 0 5px 20px rgba(153, 69, 255, 0.2);
+        }
+
+        .info-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 20px;
+            font-size: 20px;
+        }
+
+        .info-text h4 {
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .info-text p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .contact-form {
+            padding: 40px;
+            background: linear-gradient(135deg, rgba(42, 42, 42, 0.3), rgba(26, 26, 26, 0.5));
+            border: 1px solid var(--metal-dark);
+            border-radius: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            background: var(--carbon-dark);
+            border: 1px solid var(--metal-dark);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 10px rgba(153, 69, 255, 0.2);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            border: none;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(153, 69, 255, 0.5);
+        }
+
+        /* Footer */
+        .footer {
+            padding: 60px 30px 30px;
+            background: var(--primary-black);
+            border-top: 1px solid var(--metal-dark);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .footer-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--carbon-medium);
+            border: 1px solid var(--metal-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .social-icon:hover {
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            color: var(--text-primary);
+            transform: translateY(-3px);
+        }
+
+        .footer-section h4 {
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 14px;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-purple);
+            padding-left: 10px;
+        }
+
+        .footer-bottom {
+            padding-top: 30px;
+            border-top: 1px solid var(--metal-dark);
+            display: flex;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .copyright,
+        .footer-credits {
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        /* ===== DF-MESSENGER CHATBOT POSITION FIX ===== */
+        df-messenger {
+            position: fixed !important;
+            bottom: 24px !important;
+            right: 24px !important;
+            z-index: 2147483647 !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            width: auto !important;
+            height: auto !important;
+        }
+
+        df-messenger iframe {
+            position: fixed !important;
+            bottom: 24px !important;
+            right: 24px !important;
+            z-index: 2147483647 !important;
+            max-height: calc(100vh - 48px) !important;
+            border-radius: 16px !important;
+        }
+
+        /* --- Hardware Arsenal Section Styles --- */
+        .skills-section {
+            padding: 80px 0;
+            background: #0f111a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .skills-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-subtitle {
+            color: #8a99ad;
+            font-size: 1.1rem;
+        }
+
+        /* --- Filter Tabs --- */
+        .skill-categories {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 60px;
+        }
+
+        .category-tab {
+            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 242, 254, 0.2);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        .category-tab:hover,
+        .category-tab.active {
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+            border-color: transparent;
+        }
+
+        /* --- The Hexagon Grid Engine --- */
+        .skills-hexagon-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 40px 0;
+        }
+
+        /* --- 3D Hexagon Card Structure --- */
+        .skills-hexagon-item {
+            width: 250px;
+            height: 280px;
+            perspective: 1000px;
+        }
+
+        .hex-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        /* Shape Generation using CSS Clip-Path */
+        .hex-front,
+        .hex-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px 20px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        /* Front Styling */
+        .hex-front {
+            background: rgba(18, 22, 35, 0.85);
+            border: 1px solid rgba(0, 242, 254, 0.1);
+            box-shadow: inset 0 0 20px rgba(0, 242, 254, 0.05);
+        }
+
+        /* Back Styling */
+        .hex-back {
+            background: linear-gradient(135deg, #131824, #080a10);
+            transform: rotateY(180deg);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+        }
+
+        /* Hover State - Triggers Flip */
+        .skills-hexagon-item:hover .hex-inner {
+            transform: rotateY(180deg);
+        }
+
+        /* --- Typography & Card Inside UI --- */
+        .hex-badge {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            background: rgba(0, 242, 254, 0.1);
+            color: #00f2fe;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+
+        .hex-title {
+            font-size: 1.1rem;
+            margin: 10px 0;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .hex-price {
+            font-size: 1.3rem;
+            color: #4facfe;
+            font-weight: bold;
+            margin-top: 10px;
+            text-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
+        }
+
+        .hex-desc {
+            font-size: 0.85rem;
+            color: #a0aec0;
+            line-height: 1.4;
+            margin-bottom: 15px;
+        }
+
+        /* Front Call-to-Action Action Buttons */
+        .hex-btn {
+            background: transparent;
+            border: 1px solid #00f2fe;
+            color: #00f2fe;
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+
+        .hex-btn:hover {
+            background: #00f2fe;
+            color: #000;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .carousel-item {
+                width: 350px;
+                height: 480px;
+            }
+
+            .carousel-controls {
+                bottom: -60px;
+            }
+
+            .philosophy-pillars {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-container {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .menu-toggle {
+                display: flex;
+            }
+
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 85px;
+                flex-direction: column;
+                background: rgba(18, 18, 18, 0.98);
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                padding: 40px 0;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .nav-menu li {
+                margin: 15px 0;
+            }
+
+            .carousel-item {
+                width: 300px;
+                height: 460px;
+            }
+
+            .philosophy-headline {
+                font-size: 36px;
+            }
+
+            .section-title {
+                font-size: 32px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+            }
+
+            df-messenger {
+                bottom: 16px !important;
+                right: 16px !important;
+            }
+
+            df-messenger iframe {
+                bottom: 16px !important;
+                right: 16px !important;
+                max-height: calc(100vh - 32px) !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loader" id="loader">
+        <div class="loader-content">
+            <div class="loader-prism">
+                <div class="prism-face"></div>
+                <div class="prism-face"></div>
+                <div class="prism-face"></div>
+            </div>
+            <div style="color: var(--accent-purple); font-size: 18px; text-transform: uppercase; letter-spacing: 3px;">
+                Booting KNA Systems...</div>
+        </div>
+    </div>
+
+    <header class="header" id="header">
+        <nav class="nav-container">
+            <a href="#home" class="logo">
+                <div class="logo-icon">
+                    <div class="logo-prism">
+                        <div class="prism-shape"></div>
+                    </div>
+                </div>
+                <span class="logo-text">
+                    <span class="prism">KNA</span>
+                    <span class="flux">COMPUTERS</span>
+                </span>
+            </a>
+
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#home" class="nav-link active">Home</a></li>
+                <li><a href="#about" class="nav-link">Our Philosophy</a></li>
+                <li><a href="#inventory" class="nav-link">Hardware Arsenal</a></li>
+                <li><a href="#stats" class="nav-link">Metrics</a></li>
+                <li><a href="#contact" class="nav-link">Contact</a></li>
+            </ul>
+
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="carousel-container">
+            <div class="carousel" id="carousel"></div>
+            <div class="carousel-controls">
+                <button class="carousel-btn" id="prevBtn">‹</button>
+                <button class="carousel-btn" id="nextBtn">›</button>
+            </div>
+            <div class="carousel-indicators" id="indicators"></div>
+        </div>
+    </section>
+
+    <!-- Philosophy Section -->
+    <section class="philosophy-section" id="about">
+        <div class="philosophy-container">
+            <div class="prism-line"></div>
+            <h2 class="philosophy-headline">Powering Hardware<br>Forging Performance</h2>
+            <p class="philosophy-subheading">At KNA Computers, we equip gamers, creators, and professionals with
+                top-tier silicon. From cutting-edge, next-gen graphics architecture to enterprise-grade portable
+                workstations, we provision the exact hardware required to elevate your computational reality.</p>
+            <div class="philosophy-pillars">
+                <div class="pillar">
+                    <div class="pillar-icon">⚡</div>
+                    <h3 class="pillar-title">Elite Hardware</h3>
+                    <p class="pillar-description">We stock everything from extreme enthusiasts' flagship components to
+                        maximum value-per-dollar builds, ensuring peak performance boundaries are pushed.</p>
+                </div>
+                <div class="pillar">
+                    <div class="pillar-icon">🔬</div>
+                    <h3 class="pillar-title">Silicon Precision</h3>
+                    <p class="pillar-description">Every single GPU and Laptop goes through meticulous testing pipelines
+                        to verify thermal safety benchmarks and performance architectures.</p>
+                </div>
+                <div class="pillar">
+                    <div class="pillar-icon">∞</div>
+                    <h3 class="pillar-title">Constant Evolution</h3>
+                    <p class="pillar-description">Staying systematically aligned with immediate day-one launches. When
+                        next-generation tech architectures hit the ecosystem, it lands straight on our shelves.</p>
+                </div>
+            </div>
+            <div class="philosophy-particles" id="particles"></div>
+        </div>
+    </section>
+
+    <!-- Inventory Section -->
+    <section class="skills-section" id="inventory">
+        <div class="skills-container">
+            <div class="section-header">
+                <h2 class="section-title">Hardware Arsenal</h2>
+                <p class="section-subtitle">Explore our elite tier selection of Graphics Cards and Workstation Laptops
+                </p>
+            </div>
+            <div class="skill-categories">
+                <div class="category-tab active" data-category="all">All Hardware</div>
+                <div class="category-tab" data-category="gpu">Graphics Processing Units (GPUs)</div>
+                <div class="category-tab" data-category="laptop">Premium Laptops</div>
+            </div>
+            <div class="skills-hexagon-grid" id="skillsGrid"></div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section" id="stats">
+        <div class="section-header">
+            <h2 class="section-title">KNA Performance Metrics</h2>
+            <p class="section-subtitle">Real-time statistics backed by our high system deployment volumes</p>
+        </div>
+        <div class="stats-grid" id="statsGrid"></div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="contact-section" id="contact">
+        <div class="section-header">
+            <h2 class="section-title">Initialize Order Link</h2>
+            <p class="section-subtitle">Secure your allocations, query live retail prices, or schedule a custom tuning
+                build setup.</p>
+        </div>
+        <div class="contact-container">
+            <div class="contact-info">
+                <a href="https://maps.google.com" target="_blank" class="info-item">
+                    <div class="info-icon">📍</div>
+                    <div class="info-text">
+                        <h4>Store Hub Location</h4>
+                        <p>Silicon Valley, CA 94025</p>
+                    </div>
+                </a>
+                <a href="mailto:sales@knacomputers.io" class="info-item">
+                    <div class="info-icon">📧</div>
+                    <div class="info-text">
+                        <h4>Sales Ecosystem Email</h4>
+                        <p>sales@knacomputers.io</p>
+                    </div>
+                </a>
+                <a href="tel:+15551234567" class="info-item">
+                    <div class="info-icon">📱</div>
+                    <div class="info-text">
+                        <h4>Hotline Link</h4>
+                        <p>+1 (555) 123-4567</p>
+                    </div>
+                </a>
+                <a href="https://calendly.com" target="_blank" class="info-item">
+                    <div class="info-icon">📅</div>
+                    <div class="info-text">
+                        <h4>Technical Consultation</h4>
+                        <p>Book a diagnostic build query</p>
+                    </div>
+                </a>
+            </div>
+            <form class="contact-form" id="contactForm">
+                <div class="form-group">
+                    <label for="name">Your Name</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">E-mail Address</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="subject">Hardware Requirement (GPU / Laptop SKU)</label>
+                    <input type="text" id="subject" name="subject" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Configuration Details / Build Queries</label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Transmit Component Order</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="footer-logo">
+                    <div class="logo-icon">
+                        <div class="logo-prism">
+                            <div class="prism-shape"></div>
+                        </div>
+                    </div>
+                    <span class="logo-text">
+                        <span class="prism">KNA</span>
+                        <span class="flux">COMPUTERS</span>
+                    </span>
+                </div>
+                <p class="footer-description">Forging unparalleled gaming and workstation configurations using elite
+                    graphics silicon processing systems and enterprise ultrabook technologies.</p>
+                <div class="footer-social">
+                    <a href="#" class="social-icon">f</a>
+                    <a href="#" class="social-icon">t</a>
+                    <a href="#" class="social-icon">in</a>
+                    <a href="#" class="social-icon">ig</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Core Inventory</h4>
+                <div class="footer-links">
+                    <a href="#inventory">Nvidia RTX GPUs</a>
+                    <a href="#inventory">AMD Radeon Cards</a>
+                    <a href="#inventory">Gaming Framework Laptops</a>
+                    <a href="#inventory">Ultrabook Stations</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Ecosystem</h4>
+                <div class="footer-links">
+                    <a href="#about">Our Philosophy</a>
+                    <a href="#stats">Benchmarking Metrics</a>
+                    <a href="#contact">Custom Assembly Support</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <div class="footer-links">
+                    <a href="#">Driver Registries</a>
+                    <a href="#">Thermal Benchmark Utilities</a>
+                    <a href="#">Warranty Assertions</a>
+                    <a href="#">Tech Help Desk</a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="copyright">© 2026 KNA COMPUTERS. All systems loaded.</div>
+            <div class="footer-credits">Hardware Store Engine Provided via KNA Technical Development</div>
+        </div>
+    </footer>
+
+    <!-- Dialogflow Messenger -->
+    <df-messenger intent="WELCOME" chat-title="GBOT" agent-id="65d13231-7d5f-41f4-8543-f4a9c6ae9c02" language-code="en"
+        horizontal-alignment="right" vertical-alignment="bottom"></df-messenger>
+
+    <!-- External JavaScript Files (Order matters: Dialogflow first, then your scripts) -->
+    <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+    <script>
+        const portfolioData = [
+            {
+                id: 1,
+                title: 'Nvidia GeForce RTX 5090',
+                description: 'Experience unmatched computational supremacy with the absolute pinnacle of next-generation architecture.',
+                image: 'https://www.nvidia.com/content/nvidiaGDC/us/en_US/geforce/graphics-cards/_jcr_content/root/responsivegrid/nv_container_1965276325/nv_teaser_copy_1362348342.coreimg.100.630.jpeg/1735901765888/geforce-rtx-40-series-new.jpeg',
+                tech: ['Next-Gen Core', 'Ray Tracing', 'Elite Enthusiast']
+            },
+            {
+                id: 2,
+                title: 'ASUS ROG Zephyrus G14',
+                description: 'Elite portable power engineering featuring pristine high-refresh displays paired with incredible mobile processing silicon.',
+                image: 'https://rog.asus.com/media/170728681833.jpg',
+                tech: ['14" Form Factor', 'High Refresh OLED', 'Gaming Laptop']
+            },
+            {
+                id: 3,
+                title: 'AMD Radeon RX 7900 XTX',
+                description: 'Pure gaming rendering powerhouse optimized with extensive high-capacity VRAM configurations for heavy 4K computational execution.',
+                image: 'https://static0.xdaimages.com/wordpress/wp-content/uploads/2026/01/amd-gpu-handout-1.jpg?q=70&fit=crop&w=1280&h=720&dpr=1',
+                tech: ['RDNA 3', '24GB VRAM', 'AMD Flagship']
+            },
+            {
+                id: 4,
+                title: 'Lenovo ThinkPad X1 Carbon',
+                description: 'The ultra-secure corporate framework gold standard. High durability carbon composite casing tuned for absolute mobile productivity.',
+                image: 'https://media.wired.com/photos/602c68a067698c0b408ea754/master/w_1600,c_limit/Gear-ThinkPad-X1-Carbon-front-SOURCE-Lenovo.jpg',
+                tech: ['Gen 12', 'Intel Core Ultra', 'Executive Class']
+            },
+            {
+                id: 5,
+                title: 'Nvidia GeForce RTX 4080 Super',
+                description: 'Crush advanced rendering workflows and heavy modern gaming titles utilizing extreme high-definition ray tracing optimizations.',
+                image: 'https://www.nvidia.com/content/nvidiaGDC/us/en_US/geforce/graphics-cards/_jcr_content/root/responsivegrid/nv_container_1965276325/nv_teaser_copy_1362348342.coreimg.100.630.jpeg/1735901765888/geforce-rtx-40-series-new.jpeg',
+                tech: ['DLSS 3', 'Ada Lovelace', '4K Beast']
+            }
+        ];
+
+        // Hardware categorical tracking dataset
+        // Hardware Arsenal Complete Inventory Dataset Matrix
+        const skillsData = [
+            // === GRAPHICS PROCESSING UNITS (GPUs) ===
+            { name: "Nvidia GeForce RTX 5090", price: "$1,999.99", category: "gpu", badge: "Next-Gen Flagship", desc: "The absolute pinnacle of computational engineering and neural path-tracing domination." },
+            { name: "Nvidia GeForce RTX 5080", price: "$1,199.99", category: "gpu", badge: "High Enthusiast", desc: "Extreme frame-rates and revolutionary processing pipelines built for modern architectures." },
+            { name: "Nvidia GeForce RTX 4080 Super", price: "$999.99", category: "gpu", badge: "Premium 4K", desc: "Crush heavy ray-traced rendering matrix tasks and rendering engines fluidly." },
+            { name: "AMD Radeon RX 7900 XTX", price: "$929.99", category: "gpu", badge: "AMD Flagship", desc: "Massive 24GB VRAM buffer explicitly engineered for raw 4K rasterization configurations." },
+            { name: "AMD Radeon RX 7900 XT", price: "$699.99", category: "gpu", badge: "Elite Performance", desc: "High-bandwidth computation workflows paired with heavy memory rendering specs." },
+            { name: "Nvidia GeForce RTX 4060", price: "$299.99", category: "gpu", badge: "Sweet Spot", desc: "Efficient architecture leveraging revolutionary deep learning framing helpers (DLSS 3)." },
+            { name: "Nvidia GeForce RTX 3060 Ti", price: "$349.99", category: "gpu", badge: "Legacy Value", desc: "Classic powerhouse for ultra-stable 1080p and mid-range 1440p gaming configurations." },
+            { name: "Nvidia GeForce RTX 2080 Ti", price: "$399.99", category: "gpu", badge: "Hall of Fame", desc: "The hardware pioneer that initiated real-time processing ray tracing calculations." },
+            { name: "AMD Radeon RX 6600 XT", price: "$229.99", category: "gpu", badge: "Budget 1080p", desc: "Highly optimized thermal profile providing seamless high-refresh esports framerates." },
+            { name: "AMD Radeon RX 5700 XT", price: "$179.99", category: "gpu", badge: "Classic Power", desc: "Solid legacy RDNA computational horsepower for mid-tier performance builds." },
+            { name: "Nvidia GeForce GTX 1080 Ti", price: "$199.99", category: "gpu", badge: "Legendary Status", desc: "The historical king of pure, unadulterated high-capacity Pascal computing frames." },
+            { name: "Nvidia GeForce GTX 1660 Super", price: "$149.99", category: "gpu", badge: "Value King", desc: "Reliable, no-nonsense Turing framework execution without computational overhead." },
+            { name: "Nvidia GeForce GTX 1650 Super", price: "$119.99", category: "gpu", badge: "Entry Tier", desc: "Compact structural engineering designed to slide easily into low-draw setups." },
+            { name: "AMD Radeon RX 580", price: "$89.99", category: "gpu", badge: "Legacy Budget", desc: "An enduring budget masterpiece calibrated for computing adjustments and light titles." },
+
+            // === PREMIUM LAPTOPS ===
+            { name: "ASUS ROG Zephyrus G14", price: "$1,599.99", category: "laptop", badge: "Premium Portability", desc: "Stunning high-frequency OLED panel mated with top-tier mobile processing silicon." },
+            { name: "Lenovo ThinkPad X1 Carbon (Gen 12)", price: "$1,849.99", category: "laptop", badge: "Enterprise Standard", desc: "Ultralight carbon composite shell configured with Intel Core Ultra processing pipelines." },
+            { name: "HP OmniBook Series", price: "$1,249.99", category: "laptop", badge: "Next-Gen AI", desc: "Advanced neural processing modules integrated for sustained enterprise workloads." },
+            { name: "ASUS ROG Flow X13", price: "$1,399.99", category: "laptop", badge: "2-in-1 Powerhouse", desc: "Ultra-flexible 13-inch rotational profile concealing heavy production gaming components." },
+            { name: "Dell XPS 15 (9530)", price: "$1,699.99", category: "laptop", badge: "Creator Flagship", desc: "Infinite display architecture built specifically to accommodate heavy studio asset exports." },
+            { name: "HP Spectre x360 13.5", price: "$1,149.99", category: "laptop", badge: "Executive Touch", desc: "Gem-cut aesthetics housing luxury panels and exceptional prolonged power storage grids." }
+        ];
+
+        // Hexagon Grid Generator Function
+        function renderHardwareGrid(filter = "all") {
+            const gridContainer = document.getElementById("skillsGrid");
+            if (!gridContainer) return;
+
+            gridContainer.innerHTML = "";
+
+            const filteredData = skillsData.filter(item => filter === "all" || item.category === filter);
+
+            filteredData.forEach(item => {
+                const hexItem = document.createElement("div");
+                hexItem.className = "skills-hexagon-item";
+
+                hexItem.innerHTML = `
+            <div class="hex-inner">
+                <div class="hex-front">
+                    <span class="hex-badge">${item.badge}</span>
+                    <h3 class="hex-title">${item.name}</h3>
+                    <div class="hex-price">${item.price}</div>
+                </div>
+                <div class="hex-back">
+                    <p class="hex-desc">${item.desc}</p>
+                </div>
+            </div>
+        `;
+                gridContainer.appendChild(hexItem);
+            });
+        }
+
+        // Wire up Category Navigation Tabs
+        function initCategoryFilters() {
+            const tabs = document.querySelectorAll(".category-tab");
+            tabs.forEach(tab => {
+                tab.addEventListener("click", function () {
+                    tabs.forEach(t => t.classList.remove("active"));
+                    this.classList.add("active");
+
+                    const currentCategory = this.getAttribute("data-category");
+                    renderHardwareGrid(currentCategory);
+                });
+            });
+        }
+
+        // Utility form click router
+        function orderItem(itemName) {
+            const subjectField = document.getElementById('orderSubject');
+            if (subjectField) {
+                subjectField.value = `Allocation Request: ${itemName}`;
+                const contactSection = document.getElementById('contact');
+                if (contactSection) {
+                    window.scrollTo({
+                        top: contactSection.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+                subjectField.focus();
+            }
+        }
+
+        // Initialize on execution load
+        document.addEventListener("DOMContentLoaded", () => {
+            renderHardwareGrid();
+            initCategoryFilters();
+        });
+
+        // Scroll to section function
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            const header = document.getElementById('header');
+            if (section) {
+                const headerHeight = header.offsetHeight;
+                const targetPosition = section.offsetTop - headerHeight;
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        // Initialize floating particle elements for style backgrounds
+        function initParticles() {
+            const particlesContainer = document.getElementById('particles');
+            if (!particlesContainer) return;
+            const particleCount = 15;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (18 + Math.random() * 8) + 's';
+
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // Initialize Featured Carousel
+        let currentIndex = 0;
+        const carousel = document.getElementById('carousel');
+        const indicatorsContainer = document.getElementById('indicators');
+
+        function createCarouselItem(data, index) {
+            const item = document.createElement('div');
+            item.className = 'carousel-item';
+            item.dataset.index = index;
+
+            const techBadges = data.tech.map(tech =>
+                `<span class="tech-badge">${tech}</span>`
+            ).join('');
+
+            item.innerHTML = `
+        <div class="card">
+            <div class="card-number">0${data.id}</div>
+            <div class="card-image">
+                <img src="${data.image}" alt="${data.title}">
+            </div>
+            <h3 class="card-title">${data.title}</h3>
+            <p class="card-description">${data.description}</p>
+            <div class="card-tech">${techBadges}</div>
+            
+        </div>
+    `;
+
+            return item;
+        }
+
+        function initCarousel() {
+            if (!carousel || !indicatorsContainer) return;
+
+            portfolioData.forEach((data, index) => {
+                const item = createCarouselItem(data, index);
+                carousel.appendChild(item);
+
+                const indicator = document.createElement('div');
+                indicator.className = 'indicator';
+                if (index === 0) indicator.classList.add('active');
+                indicator.dataset.index = index;
+                indicator.addEventListener('click', () => goToSlide(index));
+                indicatorsContainer.appendChild(indicator);
+            });
+
+            updateCarousel();
+        }
+
+        function updateCarousel() {
+            const items = document.querySelectorAll('.carousel-item');
+            const indicators = document.querySelectorAll('.indicator');
+            const totalItems = items.length;
+            if (totalItems === 0) return;
+
+            const isMobile = window.innerWidth <= 768;
+            const isTablet = window.innerWidth <= 1024;
+
+            items.forEach((item, index) => {
+                let offset = index - currentIndex;
+
+                if (offset > totalItems / 2) {
+                    offset -= totalItems;
+                } else if (offset < -totalItems / 2) {
+                    offset += totalItems;
+                }
+
+                const absOffset = Math.abs(offset);
+                const sign = offset < 0 ? -1 : 1;
+
+                item.style.transform = '';
+                item.style.opacity = '';
+                item.style.zIndex = '';
+                item.style.transition = 'all 0.8s cubic-bezier(0.4, 0.0, 0.2, 1)';
+
+                let spacing1 = 400;
+                let spacing2 = 600;
+                let spacing3 = 750;
+
+                if (isMobile) {
+                    spacing1 = 280;
+                    spacing2 = 420;
+                    spacing3 = 550;
+                } else if (isTablet) {
+                    spacing1 = 340;
+                    spacing2 = 520;
+                    spacing3 = 650;
+                }
+
+                if (absOffset === 0) {
+                    item.style.transform = 'translate(-50%, -50%) translateZ(0) scale(1)';
+                    item.style.opacity = '1';
+                    item.style.zIndex = '10';
+                } else if (absOffset === 1) {
+                    const translateX = sign * spacing1;
+                    const rotation = isMobile ? 25 : 30;
+                    const scale = isMobile ? 0.88 : 0.85;
+                    item.style.transform = `translate(-50%, -50%) translateX(${translateX}px) translateZ(-200px) rotateY(${-sign * rotation}deg) scale(${scale})`;
+                    item.style.opacity = '0.8';
+                    item.style.zIndex = '5';
+                } else if (absOffset === 2) {
+                    const translateX = sign * spacing2;
+                    const rotation = isMobile ? 35 : 40;
+                    const scale = isMobile ? 0.75 : 0.7;
+                    item.style.transform = `translate(-50%, -50%) translateX(${translateX}px) translateZ(-350px) rotateY(${-sign * rotation}deg) scale(${scale})`;
+                    item.style.opacity = '0.5';
+                    item.style.zIndex = '3';
+                } else if (absOffset === 3) {
+                    const translateX = sign * spacing3;
+                    const rotation = isMobile ? 40 : 45;
+                    const scale = isMobile ? 0.65 : 0.6;
+                    item.style.transform = `translate(-50%, -50%) translateX(${translateX}px) translateZ(-450px) rotateY(${-sign * rotation}deg) scale(${scale})`;
+                    item.style.opacity = '0.3';
+                    item.style.zIndex = '2';
+                } else {
+                    item.style.transform = 'translate(-50%, -50%) translateZ(-500px) scale(0.5)';
+                    item.style.opacity = '0';
+                    item.style.zIndex = '1';
+                }
+            });
+
+            indicators.forEach((indicator, index) => {
+                indicator.classList.toggle('active', index === currentIndex);
+            });
+        }
+
+        function nextSlide() {
+            currentIndex = (currentIndex + 1) % portfolioData.length;
+            updateCarousel();
+        }
+
+        function prevSlide() {
+            currentIndex = (currentIndex - 1 + portfolioData.length) % portfolioData.length;
+            updateCarousel();
+        }
+
+        function goToSlide(index) {
+            currentIndex = index;
+            updateCarousel();
+        }
+
+        // Integrated Interactive Filter Engine for KNA Storefront Grid
+        function initStorefrontFilter() {
+            const categoryTabs = document.querySelectorAll('.category-tab');
+            const productCards = document.querySelectorAll('.product-card');
+
+            categoryTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Manage Active Class Status states on tabs
+                    categoryTabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    const targetCategory = tab.dataset.category;
+
+                    // Loop over inventory items and flag layout configurations
+                    productCards.forEach(card => {
+                        if (targetCategory === 'all' || card.dataset.category === targetCategory) {
+                            card.style.display = 'block';
+                            card.style.opacity = '0';
+                            setTimeout(() => {
+                                card.style.transition = 'opacity 0.4s ease';
+                                card.style.opacity = '1';
+                            }, 50);
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        }
+
+        // Global Operations Event Bindings
+        if (document.getElementById('nextBtn')) document.getElementById('nextBtn').addEventListener('click', nextSlide);
+        if (document.getElementById('prevBtn')) document.getElementById('prevBtn').addEventListener('click', prevSlide);
+
+        // Automatic Highlight Carousel System
+        setInterval(nextSlide, 6000);
+
+        // Key Matrix Handlers
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') prevSlide();
+            if (e.key === 'ArrowRight') nextSlide();
+        });
+
+        // Window Layout Adapters
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                updateCarousel();
+            }, 250);
+        });
+
+        // Content Instantiations
+        document.addEventListener('DOMContentLoaded', () => {
+            initCarousel();
+            initStorefrontFilter();
+            initParticles();
+        });
+
+        // Nav Panel Menu Interface toggles
+        const menuToggle = document.getElementById('menuToggle');
+        const navMenu = document.getElementById('navMenu');
+
+        if (menuToggle && navMenu) {
+            menuToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                menuToggle.classList.toggle('active');
+            });
+        }
+
+        // Navigation Dock Background Blur Effect transitions
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // Dynamic Scroll Trackers & View Active indicators
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                const targetSection = document.getElementById(targetId);
+
+                if (targetSection) {
+                    const headerHeight = header.offsetHeight;
+                    const targetPosition = targetSection.offsetTop - headerHeight;
+
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+
+                    if (navMenu && menuToggle) {
+                        navMenu.classList.remove('active');
+                        menuToggle.classList.remove('active');
+                    }
+                }
+            });
+        });
+
+        function updateActiveNav() {
+            const scrollPosition = window.scrollY + 100;
+
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.offsetHeight;
+                const sectionId = section.getAttribute('id');
+
+                if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+                    navLinks.forEach(link => {
+                        link.classList.remove('active');
+                        const href = link.getAttribute('href').substring(1);
+                        if (href === sectionId) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }
+        window.addEventListener('scroll', updateActiveNav);
+
+        // Analytics Performance Counter Rollers
+        function animateCounter(element) {
+            const target = parseInt(element.dataset.target);
+            const duration = 2000;
+            const step = target / (duration / 16);
+            let current = 0;
+
+            const counter = setInterval(() => {
+                current += step;
+                if (current >= target) {
+                    element.textContent = target.toLocaleString(); // Adds neat comma separations to numbers
+                    clearInterval(counter);
+                } else {
+                    element.textContent = Math.floor(current).toLocaleString();
+                }
+            }, 16);
+        }
+
+        // Lazy Load Observer triggers
+        const observerOptions = {
+            threshold: 0.3,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const statNumbers = entry.target.querySelectorAll('.stat-number');
+                    statNumbers.forEach(number => {
+                        if (!number.classList.contains('animated')) {
+                            number.classList.add('animated');
+                            animateCounter(number);
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            observer.observe(statsSection);
+        }
+
+        // Intake Order System Submissions
+        const contactForm = document.getElementById('contactForm');
+        if (contactForm) {
+            contactForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(contactForm);
+                const data = Object.fromEntries(formData);
+
+                alert(`Thank you, ${data.name}! Your request concerning SKU/Configuration: "${data.subject}" has successfully routed to our sales queue. A KNA systems engineer will review inventory levels and reach out shortly.`);
+                contactForm.reset();
+            });
+        }
+
+        // Startup Engine Loader Screens
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('loader');
+                if (loader) loader.classList.add('hidden');
+            }, 1000);
+        });
+
+
+        (function () {
+            // Force chatbot position after full load
+            function fixChatbotPosition() {
+                const df = document.querySelector('df-messenger');
+                if (df) {
+                    df.style.position = 'fixed';
+                    df.style.bottom = '24px';
+                    df.style.right = '24px';
+                    df.style.zIndex = '2147483647';
+
+                    // Try to access shadow DOM if available
+                    try {
+                        if (df.shadowRoot) {
+                            const iframe = df.shadowRoot.querySelector('iframe');
+                            if (iframe) {
+                                iframe.style.position = 'fixed';
+                                iframe.style.bottom = '24px';
+                                iframe.style.right = '24px';
+                                iframe.style.zIndex = '2147483647';
+                            }
+                        }
+                    } catch (e) { }
+                }
+            }
+
+            window.addEventListener('load', function () {
+                setTimeout(fixChatbotPosition, 100);
+                setTimeout(fixChatbotPosition, 500);
+                setTimeout(fixChatbotPosition, 1000);
+            });
+
+            // Also observe for DOM changes
+            const observer = new MutationObserver(function () {
+                fixChatbotPosition();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        })();
+    </script>
+</body>
+
+</html>
