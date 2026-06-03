@@ -100,7 +100,8 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             .strip()
         )
 
-# ----------------------------------------------------
+try:
+        # ----------------------------------------------------
         # FORCE INTENT OVERRIDES BASED ON UTTERANCE CONTEXT
         # ----------------------------------------------------
         norm_query = query_text.lower().strip()
@@ -195,9 +196,9 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 elif any(w in norm_query for w in ["laptop", "notebook"]):
                     category = "laptop"
             
-            # Extract both possible parameters from Dialogflow
-            budget_k = params.get("budget_k")      # e.g., "5k"
-            budget_num = params.get("budget_num")  # e.g., 5000
+            # FIX: Fallback checks to handle both underscore and hyphen naming styles from Dialogflow
+            budget_k = params.get("budget_k") or params.get("budget-k")      
+            budget_num = params.get("budget_num") or params.get("budget-num")  
             
             budget_limit = None
 
@@ -213,7 +214,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 except ValueError:
                     pass
 
-            # EDGE-CASE UX: User provided a category but skipped defining a budget constraint (e.g. "need gpu")
+            # EDGE-CASE UX: User provided a category but skipped defining a budget constraint (e.g. "need a gpu")
             if category and budget_limit is None:
                 all_category_items = []
                 for key, data in PRICES.items():
