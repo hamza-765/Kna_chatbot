@@ -165,15 +165,14 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             user_input = params.get("product") or params.get("products")
 
             if not user_input:
-                # Strips contextual prefixes WITHOUT deleting hardware structural numbers/letters
+                # 1. FIX: Contextual stripping WITHOUT destroying isolated numbers like 480 or 570
                 cleaned = re.sub(
                     r"\b(tell me|show me|price of|what is|check|need|want|under|below|budget|looking for|find|do you have)\b",
                     "",
                     query_text
                 )
-                # Safely strip budget tags like "under 20k" or "20k"
+                # Safely strip budget tags like "under 20k" or "20k", leaving product numbers safe
                 cleaned = re.sub(r"\b\d+\s*k\b", "", cleaned)
-                cleaned = re.sub(r"\b\d+\b", "", cleaned)
                 user_input = cleaned.strip()
 
             if not user_input or len(user_input) < 2:
@@ -184,29 +183,39 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             clean_input = str(user_input).lower().strip()
             best_match = None
 
-            # 1. EXTRACT CRITICAL HARDWARE NUMBERS (e.g., '470', '7900', '4060')
+            # Extract numbers and clean tokens from the incoming user query
             input_numbers = re.findall(r'\d+', clean_input)
             input_tokens = re.findall(r'[a-z0-9]+', clean_input)
             
+            # Filter out generic words that shouldn't dictate hardware matching rules
+            ignore_tokens = {"need", "want", "gpu", "card", "graphics", "under", "below", "k"}
+            input_tokens = [t for t in input_tokens if t not in ignore_tokens]
+
             for key in PRICES:
                 key_tokens = re.findall(r'[a-z0-9]+', key)
                 key_numbers = re.findall(r'\d+', key)
                 
-                # Rule A: If the user specified a model number, it MUST exist in the product key
+                # Rule A: If the user query has digits (e.g., '480'), it MUST match a digit in the inventory key
                 if input_numbers:
-                    number_match = all(num in key_numbers for num in input_numbers)
+                    number_match = any(num in key_numbers for num in input_numbers)
                 else:
-                    number_match = True  # Fallback if no digits are in input (e.g. "HP OmniBook")
+                    # If no digits are present, we match purely on names (e.g., "HP OmniBook")
+                    number_match = True
 
-                # Rule B: Check semantic intersection percentage
-                match_count = sum(1 for token in input_tokens if token in key_tokens)
-                
-                # Both the structural model numbers must match AND tokens must strongly intersect
-                if number_match and match_count >= len(input_tokens):
+                # Rule B: High token matching certainty (stops "rx" from matching everything)
+                # Every critical word the user typed should be contained within the registry item key
+                token_match = all(token in key_tokens for token in input_tokens if not token.isdigit())
+
+                if input_numbers and number_match and token_match:
                     best_match = key
                     break
+                elif not input_numbers and token_match and len(input_tokens) > 0:
+                    # Exact string phrase matching or subset matching for non-numbered items
+                    if any(t in key_tokens for t in input_tokens):
+                        best_match = key
+                        break
 
-            # CASE 1: Found inside inventory
+            # CASE 1: Found inside inventory registry
             if best_match:
                 product = PRICES[best_match]
                 
@@ -231,8 +240,8 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                     f"The estimated price of {product['display_name']} is {product['price']}."
                 )
 
-            # CASE 2: Strict Fallback (Item completely missing from inventory)
-            # Check if they had a budget constraint to provide helpful alternatives
+            # CASE 2: Item completely missing / Not Available
+            # Check for budget tags to present contextual, helpful alternatives
             budget_match = re.search(r'(\d+)\s*k', query_text)
             if budget_match:
                 user_budget = int(budget_match.group(1)) * 1000
@@ -250,13 +259,14 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                     alt_list = ", ".join(alternatives[:3])
                     return services.build_fulfillment_response(
                         f"I'm sorry, '{user_input.upper()}' is currently not available in our inventory.\n\n"
-                        f"However, since you're looking around that budget range, here are some alternatives we have: {alt_list}."
+                        f"However, since you're shopping around that budget range, here are options we have available: {alt_list}."
                     )
 
-            # If no budget was given, simply tell them the item is not available
+            # Plain out of stock fallback message
             return services.build_fulfillment_response(
-                f"I'm sorry, '{user_input.upper()}' is currently not available in our inventory catalog."
+                f"I'm sorry, '{user_input.upper()}' is currently not available or out of stock in our inventory."
             )
+        
         # ----------------------------------------------------
         # CLEAR CART
         # ----------------------------------------------------
