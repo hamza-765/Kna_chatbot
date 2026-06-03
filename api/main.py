@@ -115,17 +115,24 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
         if query_text in ["clear cart", "empty cart", "clear my cart"]:
             intent = "Clear_Cart_Intent"
 
-        # Intercept and route explicit price query tokens away from catalog matching loops
+        # Intercept and route explicit queries without disrupting matching loops
         if not is_button_or_generic and not is_cart_action and intent != "order":
             has_price_keyword = any(word in query_text for word in ["price", "cost", "how much", "rate", "value"])
             has_search_keyword = any(word in query_text for word in ["need", "want", "show me", "looking for", "find", "check", "do you have"])
             has_budget_constraint = any(word in query_text for word in ["under", "below", "less than", "budget", "around"]) or (any(char.isdigit() for char in query_text) and "k" in query_text)
 
-            if has_price_keyword or has_budget_constraint or has_search_keyword:
+            # FIX: If it contains a budget constraint, keep/force it as Budget Recommendation
+            if has_budget_constraint:
+                intent = "Recommend_By_Budget_Intent"
+            elif has_price_keyword or has_search_keyword:
                 words = query_text.split()
                 meaningful_words = [w for w in words if w not in ["need", "want", "find", "products", "product", "show", "me"]]
                 if len(meaningful_words) > 0:
-                    intent = "Check_Price_Intent"
+                    # If it's a broad category query like "need gpu", let Budget handle it as a total list inventory display
+                    if any(w in query_text for w in ["gpu", "card", "laptop", "notebook"]) and not has_price_keyword:
+                        intent = "Recommend_By_Budget_Intent"
+                    else:
+                        intent = "Check_Price_Intent"
 
         # ----------------------------------------------------
         # ORDER (ADD / REMOVE CART)
@@ -182,10 +189,17 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             )
 
         # ----------------------------------------------------
-        # RECOMMEND BY BUDGET
+        # RECOMMEND BY BUDGET & CATEGORY LSTINGS
         # ----------------------------------------------------
         elif intent == "Recommend_By_Budget_Intent":
             category = str(params.get("category", "")).lower().strip()
+            
+            # Contextual Fallback: Extract category from raw text if Dialogflow parameters miss it
+            if not category:
+                if any(w in query_text for w in ["gpu", "card", "graphics"]):
+                    category = "gpu"
+                elif any(w in query_text for w in ["laptop", "notebook"]):
+                    category = "laptop"
             
             # Extract both possible parameters from Dialogflow
             budget_k = params.get("budget_k")      # e.g., "5k"
@@ -193,7 +207,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             
             budget_limit = None
 
-            # 1. Parse based on whichever parameter Dialogflow populated
+            # Parse based on whichever parameter Dialogflow populated
             if budget_k:
                 try:
                     budget_limit = int(str(budget_k).lower().replace('k', '').strip()) * 1000
@@ -205,13 +219,35 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 except ValueError:
                     pass
 
-            # Fallback if neither parameter was filled out properly
+            # EDGE-CASE UX: User provided a category but skipped defining a budget constraint (e.g. "need gpu")
+            if category and budget_limit is None:
+                all_category_items = []
+                for key, data in PRICES.items():
+                    is_match = False
+                    if category in ["gpu", "card", "graphics card"] and any(brand in key for brand in ["nvidia", "amd", "rtx", "rx", "gtx"]):
+                        is_match = True
+                    elif category in ["laptop", "notebook"] and any(brand in key for brand in ["asus", "lenovo", "hp", "dell"]):
+                        is_match = True
+                    
+                    if is_match:
+                        all_category_items.append(f"• {data['display_name']} ({data['price']})")
+                
+                if all_category_items:
+                    items_text = "\n".join(all_category_items)
+                    return services.build_fulfillment_response(
+                        f"Here are all the {category}s we currently have in stock. "
+                        f"If you're hunting for a specific range, just let me know your budget (e.g., 'under 50k')!\n\n{items_text}"
+                    )
+                else:
+                    return services.build_fulfillment_response(f"Sorry, we don't have any {category}s available right now.")
+
+            # Strict Fallback if context remains ambiguous
             if not category or budget_limit is None:
                 return services.build_fulfillment_response(
                     "Could you specify what kind of product you are looking for and your exact budget?"
                 )
 
-            # 2. Your filtering logic remains exactly the same
+            # Standard filtering logic execution
             recommendations = []
             for key, data in PRICES.items():
                 is_match = False
@@ -228,7 +264,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                     except:
                         continue
 
-            # 3. Build Response
+            # Build Response
             if recommendations:
                 recs_text = "\n".join(recommendations)
                 return services.build_fulfillment_response(
