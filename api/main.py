@@ -103,43 +103,68 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
         # ----------------------------------------------------
         # INTENT FIX: FORCE PRICE/BUDGET INTERCEPTION (WITH EXCLUSIONS)
         # ----------------------------------------------------
-        # Basic navigation buttons should NEVER be hijacked by the keyword finder
         is_button_or_generic = query_text in ["find products", "find product", "products", "list products", "track orders", "track order", "checkout"]
+        is_cart_action = any(word in query_text for word in ["remove", "delete", "clear", "add to cart"])
 
-        if not is_button_or_generic:
+        # Protect structural navigation and cart modifications from being stolen by price checks
+        if not is_button_or_generic and not is_cart_action:
             has_price_keyword = any(word in query_text for word in ["price", "cost", "how much", "rate", "value"])
             has_search_keyword = any(word in query_text for word in ["need", "want", "show me", "looking for", "find", "check", "do you have"])
             has_budget_constraint = any(word in query_text for word in ["under", "below", "less than", "budget", "around"]) or (any(char.isdigit() for char in query_text) and "k" in query_text)
 
-            # Only redirect if they are actually inquiring about specific hardware metrics
             if has_price_keyword or has_budget_constraint or has_search_keyword:
-                # Double-check they didn't just type a generic phrase with a search keyword
                 words = query_text.split()
                 meaningful_words = [w for w in words if w not in ["need", "want", "find", "products", "product", "show", "me"]]
                 
                 if len(meaningful_words) > 0:
                     intent = "Check_Price_Intent"
 
+        # Force clear cart mapping manually if Dialogflow drops it
+        if query_text in ["clear cart", "empty cart", "clear my cart"]:
+            intent = "Clear_Cart_Intent"
+
         # ----------------------------------------------------
         # ORDER (ADD / REMOVE CART)
         # ----------------------------------------------------
-        if intent == "order":
+        if intent == "order" or is_cart_action:
             product = params.get("products") or params.get("product")
             action = params.get("action", "add")
             raw_qty = params.get("number", 1)
 
+            # Context Fallback: If user just types "remove", find out what's in their database cart
+            if "remove" in query_text or "remove" in str(action).lower():
+                if not product:
+                    # Look up the last item in their active cart to assist them contextually
+                    cart = await database.get_cart(session_id)
+                    if cart and cart.get("items"):
+                        # Get the name of the last added item
+                        last_item = cart["items"][-1]
+                        product_to_remove = last_item.get("name") or last_item.get("product_name")
+                        
+                        await database.remove_item_from_cart(session_id, product_to_remove)
+                        return services.build_fulfillment_response(
+                            f"Removed {product_to_remove} from your cart."
+                        )
+                    else:
+                        return services.build_fulfillment_response(
+                            "Your cart is empty! What product would you like to add?"
+                        )
+                
+                # If product name was explicitly provided alongside 'remove'
+                await database.remove_item_from_cart(session_id, product)
+                return services.build_fulfillment_response(f"Removed {product} from your cart.")
+
+            # Regular item addition routing
             try:
                 quantity = int(raw_qty)
             except:
                 quantity = 1
 
             if not product:
-                return services.build_fulfillment_response("I couldn't determine the product name.")
+                return services.build_fulfillment_response(
+                    "Which product would you like to add to your cart?"
+                )
 
-            if "remove" in str(action).lower():
-                await database.remove_item_from_cart(session_id, product)
-                return services.build_fulfillment_response(f"Removed {product} from your cart.")
-            
             await database.add_item_to_cart(session_id, product, quantity)
             
             bot_msg = (
@@ -147,8 +172,10 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 f"Anything else you'd like to add or remove?\n"
                 f"Perhaps you want to check the price of any product before finalizing your order?"
             )
-            
-            return services.build_fulfillment_response(text_message=bot_msg, chips=["Checkout", "Find Products"])
+            return services.build_fulfillment_response(
+                text_message=bot_msg, 
+                chips=["Checkout", "Find Products"]
+            )
 
         # ----------------------------------------------------
         # LIST AVAILABLE PRODUCTS
@@ -177,7 +204,6 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
 
             clean_input = str(user_input).lower().strip()
 
-            # Safeguard: If cleaning left us with generic keywords or nothing, show an instruction message
             if not clean_input or clean_input in ["product", "products", "gpu", "card", "laptop"]:
                 welcome_text = "Here are the components and laptops we currently have available:"
                 return services.build_product_list_response(
@@ -211,7 +237,6 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                         best_match = key
                         break
 
-            # CASE 1: Found inside inventory
             if best_match:
                 product = PRICES[best_match]
                 budget_match = re.search(r'(\d+)\s*k', query_text)
@@ -234,7 +259,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                     f"The estimated price of {product['display_name']} is {product['price']}."
                 )
 
-            # CASE 2: Item completely missing / Not Available
+            # Strict Missing Fallback logic
             budget_match = re.search(r'(\d+)\s*k', query_text)
             if budget_match:
                 user_budget = int(budget_match.group(1)) * 1000
@@ -258,32 +283,25 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             return services.build_fulfillment_response(
                 f"I'm sorry, '{user_input.upper()}' is currently not available or out of stock in our inventory."
             )
+
         # ----------------------------------------------------
         # CLEAR CART
         # ----------------------------------------------------
         elif intent == "Clear_Cart_Intent":
             cart = await database.get_cart(session_id)
-
             if not cart or not cart.get("items"):
-                return services.build_fulfillment_response(
-                    "Your cart is already empty."
-                )
+                return services.build_fulfillment_response("Your cart is already empty.")
 
             await database.delete_cart(session_id)
-            return services.build_fulfillment_response(
-                "Your cart has been cleared successfully."
-            )
+            return services.build_fulfillment_response("Your cart has been cleared successfully.")
 
         # ----------------------------------------------------
         # CHECKOUT
         # ----------------------------------------------------
         elif intent == "Checkout_Confirmed":
             cart = await database.get_cart(session_id)
-
             if not cart or not cart.get("items"):
-                return services.build_fulfillment_response(
-                    "Your cart is empty."
-                )
+                return services.build_fulfillment_response("Your cart is empty.")
 
             customer_name = None
             customer_address = None
@@ -292,7 +310,6 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             for context in output_contexts:
                 if "awaiting_checkout_confirmation" in context.get("name", "").lower():
                     context_params = context.get("parameters", {})
-                    
                     name_param = context_params.get("name")
                     customer_name = name_param.get("name") if isinstance(name_param, dict) else name_param
 
@@ -328,23 +345,15 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 for key, data in PRICES.items():
                     if item_name in key or key in item_name:
                         try:
-                            raw_price = (
-                                data["price"]
-                                .replace("Rs.", "")
-                                .replace("(Used)", "")
-                                .split("-")[0]
-                                .replace(",", "")
-                                .strip()
-                            )
+                            raw_price = data["price"].replace("Rs.", "").replace("(Used)", "").split("-")[0].replace(",", "").strip()
                             matched_price = int(raw_price)
-                        except Exception as e:
+                        except:
                             matched_price = 0
                         break
 
                 total_amount += matched_price * quantity
 
             order_id = services.generate_order_id()
-
             background_tasks.add_task(
                 save_order_async,
                 order_id,
@@ -367,35 +376,24 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
         # TRACK ORDER
         # ----------------------------------------------------
         elif intent == "Order_Tracking_Intent":
-            tracking_id = (
-                params.get("orderId")
-                or params.get("OrderID")
-                or params.get("order_id")
-            )
+            tracking_id = params.get("orderId") or params.get("OrderID") or params.get("order_id")
 
             if not tracking_id:
-                return services.build_fulfillment_response(
-                    "Please provide your Tracking ID."
-                )
+                return services.build_fulfillment_response("Please provide your Tracking ID.")
 
             tracking_id = tracking_id.strip().upper()
             order = await database.get_order(tracking_id)
 
             if not order:
-                return services.build_fulfillment_response(
-                    f"No order found with ID {tracking_id}."
-                )
+                return services.build_fulfillment_response(f"No order found with ID {tracking_id}.")
+                
             status = order.get("status", "Unknown")
             total_amount = order.get("total_amount") or order.get("totalAmount", 0) 
             created_at = order.get("created_at") or order.get("orderDate")
             customer_name = order.get("customer_name") or order.get("customerName", "N/A")
             customer_address = order.get("customer_address") or order.get("customerAddress", "N/A")
 
-            order_date = (
-                created_at.strftime("%d %b %Y %I:%M %p")
-                if created_at
-                else "N/A"
-            )
+            order_date = created_at.strftime("%d %b %Y %I:%M %p") if created_at else "N/A"
 
             items = []
             for item in order.get("items", []):
@@ -404,7 +402,6 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 items.append(f"• {name} (Qty: {qty})")
 
             items_text = "\n".join(items)
-
             return services.build_fulfillment_response(
                 f"📦 ORDER DETAILS\n\n"
                 f"Tracking ID: {tracking_id}\n"
@@ -412,15 +409,12 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 f"Order Date: {order_date}\n\n"
                 f"👤 Customer Name: {customer_name}\n"
                 f"📍 Shipping Address: {customer_address}\n\n"
-                f"Items Ordered:\n"
-                f"{items_text}\n\n"
+                f"Items Ordered:\n{items_text}\n\n"
                 f"💰 Total Amount: Rs. {total_amount:,}"
             )
 
         else:
-            return services.build_fulfillment_response(
-                "I couldn't determine how to process that request."
-            )
+            return services.build_fulfillment_response("I couldn't determine how to process that request.")
 
     except Exception as e:
         logging.error(f"Webhook Error: {str(e)}", exc_info=True)
