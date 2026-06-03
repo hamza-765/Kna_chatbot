@@ -101,15 +101,24 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
         )
 
         # ----------------------------------------------------
-        # INTENT FIX: FORCE PRICE/BUDGET INTERCEPTION
+        # INTENT FIX: FORCE PRICE/BUDGET INTERCEPTION (WITH EXCLUSIONS)
         # ----------------------------------------------------
-        has_price_keyword = any(word in query_text for word in ["price", "cost", "how much", "rate", "value"])
-        has_search_keyword = any(word in query_text for word in ["need", "want", "show me", "looking for", "find", "check", "do you have"])
-        has_budget_constraint = any(word in query_text for word in ["under", "below", "less than", "budget", "around"]) or (any(char.isdigit() for char in query_text) and "k" in query_text)
+        # Basic navigation buttons should NEVER be hijacked by the keyword finder
+        is_button_or_generic = query_text in ["find products", "find product", "products", "list products", "track orders", "track order", "checkout"]
 
-        if has_price_keyword or has_budget_constraint or has_search_keyword:
-            # Seal it within the catalog lookups away from fallbacks or tracking loops
-            intent = "Check_Price_Intent"
+        if not is_button_or_generic:
+            has_price_keyword = any(word in query_text for word in ["price", "cost", "how much", "rate", "value"])
+            has_search_keyword = any(word in query_text for word in ["need", "want", "show me", "looking for", "find", "check", "do you have"])
+            has_budget_constraint = any(word in query_text for word in ["under", "below", "less than", "budget", "around"]) or (any(char.isdigit() for char in query_text) and "k" in query_text)
+
+            # Only redirect if they are actually inquiring about specific hardware metrics
+            if has_price_keyword or has_budget_constraint or has_search_keyword:
+                # Double-check they didn't just type a generic phrase with a search keyword
+                words = query_text.split()
+                meaningful_words = [w for w in words if w not in ["need", "want", "find", "products", "product", "show", "me"]]
+                
+                if len(meaningful_words) > 0:
+                    intent = "Check_Price_Intent"
 
         # ----------------------------------------------------
         # ORDER (ADD / REMOVE CART)
@@ -125,15 +134,11 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 quantity = 1
 
             if not product:
-                return services.build_fulfillment_response(
-                    "I couldn't determine the product name."
-                )
+                return services.build_fulfillment_response("I couldn't determine the product name.")
 
             if "remove" in str(action).lower():
                 await database.remove_item_from_cart(session_id, product)
-                return services.build_fulfillment_response(
-                    f"Removed {product} from your cart."
-                )
+                return services.build_fulfillment_response(f"Removed {product} from your cart.")
             
             await database.add_item_to_cart(session_id, product, quantity)
             
@@ -143,15 +148,12 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 f"Perhaps you want to check the price of any product before finalizing your order?"
             )
             
-            return services.build_fulfillment_response(
-                text_message=bot_msg,
-                chips=["Checkout", "Find Products"]
-            )
+            return services.build_fulfillment_response(text_message=bot_msg, chips=["Checkout", "Find Products"])
 
         # ----------------------------------------------------
         # LIST AVAILABLE PRODUCTS
         # ----------------------------------------------------
-        elif intent == "List_Products_Intent":
+        elif intent == "List_Products_Intent" or query_text in ["find products", "products", "list products"]:
             welcome_text = "Here are the components and laptops we currently have available:"
             return services.build_product_list_response(
                 text_message=welcome_text,
@@ -165,61 +167,53 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             user_input = params.get("product") or params.get("products")
 
             if not user_input:
-                # 1. FIX: Contextual stripping WITHOUT destroying isolated numbers like 480 or 570
                 cleaned = re.sub(
-                    r"\b(tell me|show me|price of|what is|check|need|want|under|below|budget|looking for|find|do you have)\b",
+                    r"\b(tell me|show me|price of|what is|check|need|want|under|below|budget|looking for|find|do you have|products|product)\b",
                     "",
                     query_text
                 )
-                # Safely strip budget tags like "under 20k" or "20k", leaving product numbers safe
                 cleaned = re.sub(r"\b\d+\s*k\b", "", cleaned)
                 user_input = cleaned.strip()
 
-            if not user_input or len(user_input) < 2:
-                return services.build_fulfillment_response(
-                    "Which product or graphics card are you looking for?"
+            clean_input = str(user_input).lower().strip()
+
+            # Safeguard: If cleaning left us with generic keywords or nothing, show an instruction message
+            if not clean_input or clean_input in ["product", "products", "gpu", "card", "laptop"]:
+                welcome_text = "Here are the components and laptops we currently have available:"
+                return services.build_product_list_response(
+                    text_message=welcome_text,
+                    prices_registry=PRICES
                 )
 
-            clean_input = str(user_input).lower().strip()
             best_match = None
-
-            # Extract numbers and clean tokens from the incoming user query
             input_numbers = re.findall(r'\d+', clean_input)
             input_tokens = re.findall(r'[a-z0-9]+', clean_input)
             
-            # Filter out generic words that shouldn't dictate hardware matching rules
-            ignore_tokens = {"need", "want", "gpu", "card", "graphics", "under", "below", "k"}
+            ignore_tokens = {"need", "want", "gpu", "card", "graphics", "under", "below", "k", "product", "products", "find"}
             input_tokens = [t for t in input_tokens if t not in ignore_tokens]
 
             for key in PRICES:
                 key_tokens = re.findall(r'[a-z0-9]+', key)
                 key_numbers = re.findall(r'\d+', key)
                 
-                # Rule A: If the user query has digits (e.g., '480'), it MUST match a digit in the inventory key
                 if input_numbers:
                     number_match = any(num in key_numbers for num in input_numbers)
                 else:
-                    # If no digits are present, we match purely on names (e.g., "HP OmniBook")
                     number_match = True
 
-                # Rule B: High token matching certainty (stops "rx" from matching everything)
-                # Every critical word the user typed should be contained within the registry item key
                 token_match = all(token in key_tokens for token in input_tokens if not token.isdigit())
 
                 if input_numbers and number_match and token_match:
                     best_match = key
                     break
                 elif not input_numbers and token_match and len(input_tokens) > 0:
-                    # Exact string phrase matching or subset matching for non-numbered items
                     if any(t in key_tokens for t in input_tokens):
                         best_match = key
                         break
 
-            # CASE 1: Found inside inventory registry
+            # CASE 1: Found inside inventory
             if best_match:
                 product = PRICES[best_match]
-                
-                # Dynamic Budget Verification 
                 budget_match = re.search(r'(\d+)\s*k', query_text)
                 if budget_match:
                     user_budget = int(budget_match.group(1)) * 1000
@@ -241,7 +235,6 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 )
 
             # CASE 2: Item completely missing / Not Available
-            # Check for budget tags to present contextual, helpful alternatives
             budget_match = re.search(r'(\d+)\s*k', query_text)
             if budget_match:
                 user_budget = int(budget_match.group(1)) * 1000
@@ -262,11 +255,9 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                         f"However, since you're shopping around that budget range, here are options we have available: {alt_list}."
                     )
 
-            # Plain out of stock fallback message
             return services.build_fulfillment_response(
                 f"I'm sorry, '{user_input.upper()}' is currently not available or out of stock in our inventory."
             )
-        
         # ----------------------------------------------------
         # CLEAR CART
         # ----------------------------------------------------
