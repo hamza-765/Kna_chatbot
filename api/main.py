@@ -186,34 +186,40 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
         # ----------------------------------------------------
         elif intent == "Recommend_By_Budget_Intent":
             category = str(params.get("category", "")).lower().strip()
-            budget_raw = params.get("budget")
             
-            # Fallback if Dialogflow missed the exact parameters
-            if not category or not budget_raw:
+            # Extract both possible parameters from Dialogflow
+            budget_k = params.get("budget_k")      # e.g., "5k"
+            budget_num = params.get("budget_num")  # e.g., 5000
+            
+            budget_limit = None
+
+            # 1. Parse based on whichever parameter Dialogflow populated
+            if budget_k:
+                try:
+                    budget_limit = int(str(budget_k).lower().replace('k', '').strip()) * 1000
+                except ValueError:
+                    pass
+            elif budget_num:
+                try:
+                    budget_limit = int(budget_num)
+                except ValueError:
+                    pass
+
+            # Fallback if neither parameter was filled out properly
+            if not category or budget_limit is None:
                 return services.build_fulfillment_response(
                     "Could you specify what kind of product you are looking for and your exact budget?"
                 )
 
-            # Handle "k" formatting if passed as a string (e.g., "300k" -> 300000)
-            try:
-                if isinstance(budget_raw, str) and 'k' in budget_raw.lower():
-                    budget_limit = int(budget_raw.lower().replace('k', '').strip()) * 1000
-                else:
-                    budget_limit = int(budget_raw)
-            except ValueError:
-                 return services.build_fulfillment_response("I couldn't quite catch that amount. What is your budget limit in numbers?")
-
+            # 2. Your filtering logic remains exactly the same
             recommendations = []
-            
             for key, data in PRICES.items():
-                # Map broad categories to product keywords
                 is_match = False
                 if category in ["gpu", "card", "graphics card"] and any(brand in key for brand in ["nvidia", "amd", "rtx", "rx", "gtx"]):
                     is_match = True
                 elif category in ["laptop", "notebook"] and any(brand in key for brand in ["asus", "lenovo", "hp", "dell"]):
                     is_match = True
                 
-                # Check price against budget
                 if is_match:
                     try:
                         raw_price = data["price"].replace("Rs.", "").replace("(Used)", "").split("-")[0].replace(",", "").strip()
@@ -222,7 +228,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                     except:
                         continue
 
-            # Build the response
+            # 3. Build Response
             if recommendations:
                 recs_text = "\n".join(recommendations)
                 return services.build_fulfillment_response(
@@ -231,9 +237,9 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             else:
                 return services.build_fulfillment_response(
                     f"I couldn't find any {category}s strictly under Rs. {budget_limit:,}. "
-                    f"Would you like to see our full list of available {category}s?"
-                )
-                
+                    f"Would you like to see our full list of available products?"
+                )        
+
         # ----------------------------------------------------
         # LIST AVAILABLE PRODUCTS
         # ----------------------------------------------------
