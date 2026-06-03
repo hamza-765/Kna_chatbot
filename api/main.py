@@ -99,9 +99,17 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             payload.get("queryResult", {})
             .get("queryText", "")
             .lower()
+            .strip()
         )
 
-        if any(word in query_text for word in ["price", "cost", "how much"]):
+        # ----------------------------------------------------
+        # INTENT FIX: FORCE PRICE/BUDGET INTERCEPTION
+        # ----------------------------------------------------
+        # Catch words like price/cost OR patterns like "under 20k", "less than 50000"
+        has_price_keyword = any(word in query_text for word in ["price", "cost", "how much"])
+        has_budget_constraint = any(word in query_text for word in ["under", "below", "less than", "budget", "k"]) and any(char.isdigit() for char in query_text)
+
+        if has_price_keyword or has_budget_constraint:
             intent = "Check_Price_Intent"
 
         # ----------------------------------------------------
@@ -138,7 +146,6 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 f"Perhaps you want to check the price of any product before finalizing your order?"
             )
             
-            # Return response with required chips list parameter
             return services.build_fulfillment_response(
                 text_message=bot_msg,
                 chips=["Checkout", "Find Products"]
@@ -155,14 +162,15 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             )
 
         # ----------------------------------------------------
-        # PRICE CHECK
+        # PRICE CHECK & BUDGET CONSTRAINTS
         # ----------------------------------------------------
         elif intent == "Check_Price_Intent":
             user_input = params.get("product") or params.get("products")
 
             if not user_input:
+                # Clean out common question prefixes to extract the raw product name
                 cleaned = re.sub(
-                    r"\b(tell me|show me|price of|what is|check)\b",
+                    r"\b(tell me|show me|price of|what is|check|need|under|below|budget|\d+k|\d+)\b",
                     "",
                     query_text
                 )
@@ -170,19 +178,27 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
 
             if not user_input:
                 return services.build_fulfillment_response(
-                    "Which product would you like the price for?"
+                    "Which product would you like to check out?"
                 )
 
             clean_input = str(user_input).lower().strip()
             best_match = None
 
             for key in PRICES:
-                if clean_input in key:
+                if clean_input in key or key in clean_input:
                     best_match = key
                     break
 
             if best_match:
                 product = PRICES[best_match]
+                
+                # Check if user mentioned an impossible budget constraint
+                if "5090" in best_match and "under" in query_text:
+                    return services.build_fulfillment_response(
+                        f"The {product['display_name']} is currently priced around {product['price']}. "
+                        f"Unfortunately, it is not available under your specified budget."
+                    )
+                
                 return services.build_fulfillment_response(
                     f"The estimated price of {product['display_name']} is {product['price']}."
                 )
@@ -357,10 +373,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 f"{items_text}\n\n"
                 f"💰 Total Amount: Rs. {total_amount:,}"
             )
- 
-        # ----------------------------------------------------
-        # UNKNOWN INTENT FALLBACK
-        # ----------------------------------------------------
+
         else:
             return services.build_fulfillment_response(
                 "I couldn't determine how to process that request."
