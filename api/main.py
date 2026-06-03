@@ -101,13 +101,22 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
         )
 
         # ----------------------------------------------------
-        # INTENT FIX: FORCE PRICE/BUDGET INTERCEPTION (WITH EXCLUSIONS)
+        # FORCE INTENT OVERRIDES BASED ON UTTERANCE CONTEXT
         # ----------------------------------------------------
         is_button_or_generic = query_text in ["find products", "find product", "products", "list products", "track orders", "track order", "checkout"]
         is_cart_action = any(word in query_text for word in ["remove", "delete", "clear", "add to cart"])
 
-        # Protect structural navigation and cart modifications from being stolen by price checks
-        if not is_button_or_generic and not is_cart_action:
+        # FIX: Force immediate mapping to order handling if it's a bare removal command 
+        # This breaks Dialogflow's automatic slot-filling loop for products
+        if query_text in ["remove", "delete", "remove item", "delete item"]:
+            intent = "order"
+            params["action"] = "remove"
+
+        if query_text in ["clear cart", "empty cart", "clear my cart"]:
+            intent = "Clear_Cart_Intent"
+
+        # Intercept and route explicit price query tokens away from catalog matching loops
+        if not is_button_or_generic and not is_cart_action and intent != "order":
             has_price_keyword = any(word in query_text for word in ["price", "cost", "how much", "rate", "value"])
             has_search_keyword = any(word in query_text for word in ["need", "want", "show me", "looking for", "find", "check", "do you have"])
             has_budget_constraint = any(word in query_text for word in ["under", "below", "less than", "budget", "around"]) or (any(char.isdigit() for char in query_text) and "k" in query_text)
@@ -115,29 +124,24 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             if has_price_keyword or has_budget_constraint or has_search_keyword:
                 words = query_text.split()
                 meaningful_words = [w for w in words if w not in ["need", "want", "find", "products", "product", "show", "me"]]
-                
                 if len(meaningful_words) > 0:
                     intent = "Check_Price_Intent"
-
-        # Force clear cart mapping manually if Dialogflow drops it
-        if query_text in ["clear cart", "empty cart", "clear my cart"]:
-            intent = "Clear_Cart_Intent"
 
         # ----------------------------------------------------
         # ORDER (ADD / REMOVE CART)
         # ----------------------------------------------------
-        if intent == "order" or is_cart_action:
+        if intent == "order":
             product = params.get("products") or params.get("product")
             action = params.get("action", "add")
             raw_qty = params.get("number", 1)
 
-            # Context Fallback: If user just types "remove", find out what's in their database cart
-            if "remove" in query_text or "remove" in str(action).lower():
+            # Context Fallback: When removal action is captured
+            if "remove" in query_text or "remove" in str(action).lower() or "delete" in query_text:
                 if not product:
-                    # Look up the last item in their active cart to assist them contextually
+                    # Search database cart to find what they recently added
                     cart = await database.get_cart(session_id)
                     if cart and cart.get("items"):
-                        # Get the name of the last added item
+                        # Automatically target the last added item
                         last_item = cart["items"][-1]
                         product_to_remove = last_item.get("name") or last_item.get("product_name")
                         
@@ -147,14 +151,14 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                         )
                     else:
                         return services.build_fulfillment_response(
-                            "Your cart is empty! What product would you like to add?"
+                            "Your cart is currently empty! What would you like to buy?"
                         )
                 
-                # If product name was explicitly provided alongside 'remove'
+                # Explicit item extraction removal execution
                 await database.remove_item_from_cart(session_id, product)
                 return services.build_fulfillment_response(f"Removed {product} from your cart.")
 
-            # Regular item addition routing
+            # Item Addition Flow
             try:
                 quantity = int(raw_qty)
             except:
@@ -162,7 +166,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
 
             if not product:
                 return services.build_fulfillment_response(
-                    "Which product would you like to add to your cart?"
+                    "Which item would you like to add to your cart?"
                 )
 
             await database.add_item_to_cart(session_id, product, quantity)
@@ -259,7 +263,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                     f"The estimated price of {product['display_name']} is {product['price']}."
                 )
 
-            # Strict Missing Fallback logic
+            # Out of stock budget-handling helper routing logic
             budget_match = re.search(r'(\d+)\s*k', query_text)
             if budget_match:
                 user_budget = int(budget_match.group(1)) * 1000
