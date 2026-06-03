@@ -182,6 +182,59 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             )
 
         # ----------------------------------------------------
+        # RECOMMEND BY BUDGET
+        # ----------------------------------------------------
+        elif intent == "Recommend_By_Budget_Intent":
+            category = str(params.get("category", "")).lower().strip()
+            budget_raw = params.get("budget")
+            
+            # Fallback if Dialogflow missed the exact parameters
+            if not category or not budget_raw:
+                return services.build_fulfillment_response(
+                    "Could you specify what kind of product you are looking for and your exact budget?"
+                )
+
+            # Handle "k" formatting if passed as a string (e.g., "300k" -> 300000)
+            try:
+                if isinstance(budget_raw, str) and 'k' in budget_raw.lower():
+                    budget_limit = int(budget_raw.lower().replace('k', '').strip()) * 1000
+                else:
+                    budget_limit = int(budget_raw)
+            except ValueError:
+                 return services.build_fulfillment_response("I couldn't quite catch that amount. What is your budget limit in numbers?")
+
+            recommendations = []
+            
+            for key, data in PRICES.items():
+                # Map broad categories to product keywords
+                is_match = False
+                if category in ["gpu", "card", "graphics card"] and any(brand in key for brand in ["nvidia", "amd", "rtx", "rx", "gtx"]):
+                    is_match = True
+                elif category in ["laptop", "notebook"] and any(brand in key for brand in ["asus", "lenovo", "hp", "dell"]):
+                    is_match = True
+                
+                # Check price against budget
+                if is_match:
+                    try:
+                        raw_price = data["price"].replace("Rs.", "").replace("(Used)", "").split("-")[0].replace(",", "").strip()
+                        if int(raw_price) <= budget_limit:
+                            recommendations.append(f"• {data['display_name']} ({data['price']})")
+                    except:
+                        continue
+
+            # Build the response
+            if recommendations:
+                recs_text = "\n".join(recommendations)
+                return services.build_fulfillment_response(
+                    f"Here are the {category}s currently available under your budget:\n\n{recs_text}"
+                )
+            else:
+                return services.build_fulfillment_response(
+                    f"I couldn't find any {category}s strictly under Rs. {budget_limit:,}. "
+                    f"Would you like to see our full list of available {category}s?"
+                )
+                
+        # ----------------------------------------------------
         # LIST AVAILABLE PRODUCTS
         # ----------------------------------------------------
         elif intent == "List_Products_Intent" or query_text in ["find products", "products", "list products"]:
