@@ -100,39 +100,33 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             .strip()
         )
 
-        # ----------------------------------------------------
+# ----------------------------------------------------
         # FORCE INTENT OVERRIDES BASED ON UTTERANCE CONTEXT
         # ----------------------------------------------------
-        is_button_or_generic = query_text in ["find products", "find product", "products", "list products", "track orders", "track order", "checkout"]
-        is_cart_action = any(word in query_text for word in ["remove", "delete", "clear", "add to cart"])
+        norm_query = query_text.lower().strip()
+        is_button_or_generic = norm_query in ["find products", "find product", "products", "list products", "track orders", "track order", "checkout"]
+        is_cart_action = any(word in norm_query for word in ["remove", "delete", "clear", "add to cart"])
 
         # FIX: Force immediate mapping to order handling if it's a bare removal command 
         # This breaks Dialogflow's automatic slot-filling loop for products
-        if query_text in ["remove", "delete", "remove item", "delete item"]:
+        if norm_query in ["remove", "delete", "remove item", "delete item"]:
             intent = "order"
             params["action"] = "remove"
 
-        if query_text in ["clear cart", "empty cart", "clear my cart"]:
+        if norm_query in ["clear cart", "empty cart", "clear my cart"]:
             intent = "Clear_Cart_Intent"
 
         # Intercept and route explicit queries without disrupting matching loops
         if not is_button_or_generic and not is_cart_action and intent != "order":
-            has_price_keyword = any(word in query_text for word in ["price", "cost", "how much", "rate", "value"])
-            has_search_keyword = any(word in query_text for word in ["need", "want", "show me", "looking for", "find", "check", "do you have"])
-            has_budget_constraint = any(word in query_text for word in ["under", "below", "less than", "budget", "around"]) or (any(char.isdigit() for char in query_text) and "k" in query_text)
+            has_price_keyword = any(word in norm_query for word in ["price", "cost", "how much", "rate", "value"])
+            has_budget_constraint = any(word in norm_query for word in ["under", "below", "less than", "budget", "around"]) or (any(char.isdigit() for char in norm_query) and "k" in norm_query)
+            has_category_keyword = any(word in norm_query for word in ["gpu", "card", "graphics", "laptop", "notebook"])
 
-            # FIX: If it contains a budget constraint, keep/force it as Budget Recommendation
-            if has_budget_constraint:
+            # FIX: If they provide a general category keyword but aren't explicitly asking for a price, route to Budget/Category Listings
+            if has_budget_constraint or (has_category_keyword and not has_price_keyword):
                 intent = "Recommend_By_Budget_Intent"
-            elif has_price_keyword or has_search_keyword:
-                words = query_text.split()
-                meaningful_words = [w for w in words if w not in ["need", "want", "find", "products", "product", "show", "me"]]
-                if len(meaningful_words) > 0:
-                    # If it's a broad category query like "need gpu", let Budget handle it as a total list inventory display
-                    if any(w in query_text for w in ["gpu", "card", "laptop", "notebook"]) and not has_price_keyword:
-                        intent = "Recommend_By_Budget_Intent"
-                    else:
-                        intent = "Check_Price_Intent"
+            elif has_price_keyword:
+                intent = "Check_Price_Intent"
 
         # ----------------------------------------------------
         # ORDER (ADD / REMOVE CART)
@@ -143,7 +137,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             raw_qty = params.get("number", 1)
 
             # Context Fallback: When removal action is captured
-            if "remove" in query_text or "remove" in str(action).lower() or "delete" in query_text:
+            if "remove" in norm_query or "remove" in str(action).lower() or "delete" in norm_query:
                 if not product:
                     # Search database cart to find what they recently added
                     cart = await database.get_cart(session_id)
@@ -189,16 +183,16 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             )
 
         # ----------------------------------------------------
-        # RECOMMEND BY BUDGET & CATEGORY LSTINGS
+        # RECOMMEND BY BUDGET & CATEGORY LISTINGS
         # ----------------------------------------------------
         elif intent == "Recommend_By_Budget_Intent":
             category = str(params.get("category", "")).lower().strip()
             
-            # Contextual Fallback: Extract category from raw text if Dialogflow parameters miss it
+            # Contextual Fallback: Extract category from normalized text if Dialogflow parameters miss it
             if not category:
-                if any(w in query_text for w in ["gpu", "card", "graphics"]):
+                if any(w in norm_query for w in ["gpu", "card", "graphics"]):
                     category = "gpu"
-                elif any(w in query_text for w in ["laptop", "notebook"]):
+                elif any(w in norm_query for w in ["laptop", "notebook"]):
                     category = "laptop"
             
             # Extract both possible parameters from Dialogflow
@@ -241,7 +235,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 else:
                     return services.build_fulfillment_response(f"Sorry, we don't have any {category}s available right now.")
 
-            # Strict Fallback if context remains ambiguous
+            # Strict Fallback if context remains completely ambiguous
             if not category or budget_limit is None:
                 return services.build_fulfillment_response(
                     "Could you specify what kind of product you are looking for and your exact budget?"
@@ -279,7 +273,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
         # ----------------------------------------------------
         # LIST AVAILABLE PRODUCTS
         # ----------------------------------------------------
-        elif intent == "List_Products_Intent" or query_text in ["find products", "products", "list products"]:
+        elif intent == "List_Products_Intent" or norm_query in ["find products", "products", "list products"]:
             welcome_text = "Here are the components and laptops we currently have available:"
             return services.build_product_list_response(
                 text_message=welcome_text,
@@ -293,10 +287,11 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             user_input = params.get("product") or params.get("products")
 
             if not user_input:
+                # FIX: Added 'i', 'a', 'an', 'the' to prevent hanging substrings from breaking fallback matching loops
                 cleaned = re.sub(
-                    r"\b(tell me|show me|price of|what is|check|need|want|under|below|budget|looking for|find|do you have|products|product)\b",
+                    r"\b(tell me|show me|price of|what is|check|need|want|under|below|budget|looking for|find|do you have|products|product|i|a|an|the)\b",
                     "",
-                    query_text
+                    norm_query
                 )
                 cleaned = re.sub(r"\b\d+\s*k\b", "", cleaned)
                 user_input = cleaned.strip()
@@ -338,14 +333,14 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
 
             if best_match:
                 product = PRICES[best_match]
-                budget_match = re.search(r'(\d+)\s*k', query_text)
+                budget_match = re.search(r'(\d+)\s*k', norm_query)
                 if budget_match:
                     user_budget = int(budget_match.group(1)) * 1000
                     try:
                         raw_market_price = product['price'].replace("Rs.", "").replace("(Used)", "").split("-")[0].replace(",", "").strip()
                         market_min_price = int(raw_market_price)
                         
-                        if "under" in query_text or "below" in query_text or "budget" in query_text:
+                        if "under" in norm_query or "below" in norm_query or "budget" in norm_query:
                             if user_budget < market_min_price:
                                 return services.build_fulfillment_response(
                                     f"The {product['display_name']} is currently priced around {product['price']}. "
@@ -359,7 +354,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 )
 
             # Out of stock budget-handling helper routing logic
-            budget_match = re.search(r'(\d+)\s*k', query_text)
+            budget_match = re.search(r'(\d+)\s*k', norm_query)
             if budget_match:
                 user_budget = int(budget_match.group(1)) * 1000
                 alternatives = []
