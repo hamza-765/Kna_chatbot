@@ -40,9 +40,7 @@
 
         html {
             scroll-behavior: smooth;
-            position: relative;
-            z-index: 1;
-            overflow-x: visible !important;
+            overflow-x: hidden;
         }
 
         body {
@@ -50,8 +48,6 @@
             background: var(--primary-black);
             color: var(--text-primary);
             overflow-x: hidden;
-            position: relative;
-            z-index: 1;
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
 
@@ -452,6 +448,12 @@
             transition: 0.3s;
         }
 
+        .indicator.active {
+            background: var(--accent-purple);
+            box-shadow: 0 0 8px var(--accent-purple);
+            transform: scale(1.3);
+        }
+
         /* Philosophy Section */
         .philosophy-section {
             padding: 100px 30px;
@@ -525,6 +527,29 @@
             transition: 0.3s;
         }
 
+        .pillar:hover {
+            transform: translateY(-10px);
+            border-color: var(--accent-purple);
+            box-shadow: 0 20px 40px rgba(153, 69, 255, 0.2);
+        }
+
+        .pillar-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .pillar-title {
+            font-size: 22px;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .pillar-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Inventory Section */
         .skills-section,
         .stats-section,
         .contact-section {
@@ -553,6 +578,13 @@
             color: transparent;
         }
 
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-top: 10px;
+        }
+
+        /* Filter Tabs */
         .skill-categories {
             display: flex;
             justify-content: center;
@@ -573,6 +605,15 @@
             transition: 0.3s;
         }
 
+        .category-tab:hover,
+        .category-tab.active {
+            background: linear-gradient(45deg, #00f2fe, #4facfe);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+            border-color: transparent;
+        }
+
+        /* Hexagon Grid */
         .skills-hexagon-grid {
             display: flex;
             flex-wrap: wrap;
@@ -654,6 +695,102 @@
             line-height: 1.4;
         }
 
+        /* ENHANCED STATS CARDS (merged with premium block styling) */
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, rgba(26, 26, 26, 0.9), rgba(18, 18, 18, 0.95));
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(153, 69, 255, 0.3);
+            border-radius: 2rem;
+            padding: 2rem;
+            min-width: 260px;
+            max-width: 320px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--accent-purple), var(--accent-cyan), var(--accent-blue), var(--accent-purple));
+            border-radius: 2rem;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.4s ease;
+        }
+
+        .stat-card:hover::before {
+            opacity: 0.5;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 28px 40px -15px rgba(153, 69, 255, 0.3);
+        }
+
+        .stat-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2.5rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover .stat-icon {
+            transform: scale(1.05);
+        }
+
+        .stat-number {
+            font-size: 3.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-cyan), #ffffff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+            letter-spacing: 2px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: var(--accent-cyan);
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-description {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            border-top: 1px dashed rgba(153, 69, 255, 0.3);
+            padding-top: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Contact Section */
         .contact-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -677,6 +814,12 @@
             border-radius: 10px;
             text-decoration: none;
             color: inherit;
+            transition: 0.3s;
+        }
+
+        .info-item:hover {
+            transform: translateX(10px);
+            background: rgba(153, 69, 255, 0.1);
         }
 
         .info-icon {
@@ -714,8 +857,15 @@
             color: white;
             font-weight: bold;
             cursor: pointer;
+            transition: 0.3s;
         }
 
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(153, 69, 255, 0.5);
+        }
+
+        /* Footer */
         .footer {
             padding: 60px 30px 30px;
             background: var(--primary-black);
@@ -730,16 +880,48 @@
             gap: 40px;
         }
 
-        /* CHATBOT RESPONSIVE FIX - ALWAYS VISIBLE WITHOUT SCROLLING */
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 30px auto 0;
+            padding-top: 30px;
+            border-top: 1px solid var(--metal-dark);
+            text-align: center;
+            color: var(--text-dim);
+        }
+
+        /* CHATBOT RESPONSIVE FIX */
+        /* =========================
+   DIALOGFLOW FIXED CHATBOT
+   ========================= */
+
         df-messenger {
             position: fixed !important;
             bottom: 20px !important;
             right: 20px !important;
             z-index: 2147483647 !important;
-            display: block !important;
-            visibility: visible !important;
+
+            --df-messenger-button-titlebar-color: #00a8ff;
+            --df-messenger-chat-background-color: #5a4f4f;
+            --df-messenger-font-color: #463737;
+            --df-messenger-send-icon: #00a8ff;
+
+            --df-messenger-chat-window-width: 380px;
+            --df-messenger-chat-window-height: 550px;
         }
 
+        /* Mobile */
+        @media screen and (max-width: 768px) {
+
+            df-messenger {
+                bottom: calc(15px + env(safe-area-inset-bottom)) !important;
+                right: 15px !important;
+
+                --df-messenger-chat-window-width: 92vw;
+                --df-messenger-chat-window-height: 70vh;
+            }
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
             .menu-toggle {
                 display: flex;
@@ -788,11 +970,6 @@
                 width: 220px;
                 height: 260px;
             }
-
-            df-messenger {
-                bottom: 16px !important;
-                right: 16px !important;
-            }
         }
 
         @media (max-width: 480px) {
@@ -808,6 +985,10 @@
             .pillar {
                 width: 100%;
             }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
         }
     </style>
 </head>
@@ -820,8 +1001,7 @@
                 <div class="prism-face"></div>
                 <div class="prism-face"></div>
             </div>
-            <div style="color: var(--accent-purple); font-size: 18px; text-transform: uppercase; letter-spacing: 3px;">
-                Booting KNA Systems...</div>
+            <div style="color: var(--accent-purple);">Booting KNA Systems...</div>
         </div>
     </div>
 
@@ -832,8 +1012,7 @@
                     <div class="logo-prism">
                         <div class="prism-shape"></div>
                     </div>
-                </div>
-                <span class="logo-text"><span class="prism">KNA</span><span class="flux">COMPUTERS</span></span>
+                </div><span class="logo-text"><span class="prism">KNA</span><span class="flux">COMPUTERS</span></span>
             </a>
             <ul class="nav-menu" id="navMenu">
                 <li><a href="#home" class="nav-link active">Home</a></li>
@@ -849,7 +1028,8 @@
     <section class="hero" id="home">
         <div class="carousel-container">
             <div class="carousel" id="carousel"></div>
-            <div class="carousel-controls"><button class="carousel-btn" id="prevBtn">‹</button><button class="carousel-btn" id="nextBtn">›</button></div>
+            <div class="carousel-controls"><button class="carousel-btn" id="prevBtn">‹</button><button
+                    class="carousel-btn" id="nextBtn">›</button></div>
             <div class="carousel-indicators" id="indicators"></div>
         </div>
     </section>
@@ -858,58 +1038,128 @@
         <div class="philosophy-container">
             <div class="prism-line"></div>
             <h2 class="philosophy-headline">Powering Hardware<br>Forging Performance</h2>
-            <p class="philosophy-subheading">At KNA Computers, we equip gamers, creators, and professionals with top-tier silicon. From cutting-edge, next-gen graphics architecture to enterprise-grade portable workstations, we provision the exact hardware required to elevate your computational reality.</p>
+            <p class="philosophy-subheading">At KNA Computers, we equip gamers, creators, and professionals with
+                top-tier silicon. From cutting-edge, next-gen graphics architecture to enterprise-grade portable
+                workstations, we provision the exact hardware required to elevate your computational reality.</p>
             <div class="philosophy-pillars">
-                <div class="pillar"><div class="pillar-icon">⚡</div><h3 class="pillar-title">Elite Hardware</h3><p class="pillar-description">We stock everything from extreme enthusiasts' flagship components to maximum value-per-dollar builds.</p></div>
-                <div class="pillar"><div class="pillar-icon">🔬</div><h3 class="pillar-title">Silicon Precision</h3><p class="pillar-description">Every single GPU and Laptop goes through meticulous testing pipelines to verify thermal safety benchmarks.</p></div>
-                <div class="pillar"><div class="pillar-icon">∞</div><h3 class="pillar-title">Constant Evolution</h3><p class="pillar-description">Staying aligned with immediate day-one launches. Next-generation tech lands straight on our shelves.</p></div>
+                <div class="pillar">
+                    <div class="pillar-icon">⚡</div>
+                    <h3 class="pillar-title">Elite Hardware</h3>
+                    <p class="pillar-description">We stock everything from extreme enthusiasts' flagship components to
+                        maximum value-per-dollar builds.</p>
+                </div>
+                <div class="pillar">
+                    <div class="pillar-icon">🔬</div>
+                    <h3 class="pillar-title">Silicon Precision</h3>
+                    <p class="pillar-description">Every single GPU and Laptop goes through meticulous testing pipelines
+                        to verify thermal safety benchmarks.</p>
+                </div>
+                <div class="pillar">
+                    <div class="pillar-icon">∞</div>
+                    <h3 class="pillar-title">Constant Evolution</h3>
+                    <p class="pillar-description">Staying aligned with immediate day-one launches. Next-generation tech
+                        lands straight on our shelves.</p>
+                </div>
             </div>
         </div>
     </section>
 
     <section class="skills-section" id="inventory">
         <div class="skills-container">
-            <div class="section-header"><h2 class="section-title">Hardware Arsenal</h2><p class="section-subtitle">Explore our elite tier selection</p></div>
-            <div class="skill-categories"><div class="category-tab active" data-category="all">All Hardware</div><div class="category-tab" data-category="gpu">GPUs</div><div class="category-tab" data-category="laptop">Laptops</div></div>
+            <div class="section-header">
+                <h2 class="section-title">Hardware Arsenal</h2>
+                <p class="section-subtitle">Explore our elite tier selection</p>
+            </div>
+            <div class="skill-categories">
+                <div class="category-tab active" data-category="all">All Hardware</div>
+                <div class="category-tab" data-category="gpu">GPUs</div>
+                <div class="category-tab" data-category="laptop">Laptops</div>
+            </div>
             <div class="skills-hexagon-grid" id="skillsGrid"></div>
         </div>
     </section>
 
     <section class="stats-section" id="stats">
-        <div class="section-header"><h2 class="section-title">KNA Performance Metrics</h2><p class="section-subtitle">Real-time statistics backed by high deployment volumes</p></div>
+        <div class="section-header">
+            <h2 class="section-title">⚡ KNA PERFORMANCE METRICS</h2>
+            <p class="section-subtitle">Real-time statistics backed by high deployment volumes — precision engineering
+                meets unrelenting performance.</p>
+        </div>
         <div class="stats-grid" id="statsGrid"></div>
     </section>
 
     <section class="contact-section" id="contact">
-        <div class="section-header"><h2 class="section-title">Initialize Order Link</h2><p class="section-subtitle">Secure your allocations, query live retail prices, or schedule a custom tuning build setup.</p></div>
+        <div class="section-header">
+            <h2 class="section-title">Initialize Order Link</h2>
+            <p class="section-subtitle">Secure your allocations, query live retail prices, or schedule a custom tuning
+                build setup.</p>
+        </div>
         <div class="contact-container">
-            <div class="contact-info">
-                <a href="#" class="info-item"><div class="info-icon">📍</div><div class="info-text"><h4>Store Hub Location</h4><p>Silicon Valley, CA 94025</p></div></a>
-                <a href="mailto:sales@knacomputers.io" class="info-item"><div class="info-icon">📧</div><div class="info-text"><h4>Sales Ecosystem Email</h4><p>sales@knacomputers.io</p></div></a>
-                <a href="tel:+15551234567" class="info-item"><div class="info-icon">📱</div><div class="info-text"><h4>Hotline Link</h4><p>+1 (555) 123-4567</p></div></a>
-            </div>
+            <div class="contact-info"><a href="#" class="info-item">
+                    <div class="info-icon">📍</div>
+                    <div class="info-text">
+                        <h4>Store Hub Location</h4>
+                        <p>Silicon Valley, CA 94025</p>
+                    </div>
+                </a><a href="mailto:sales@knacomputers.io" class="info-item">
+                    <div class="info-icon">📧</div>
+                    <div class="info-text">
+                        <h4>Sales Ecosystem Email</h4>
+                        <p>sales@knacomputers.io</p>
+                    </div>
+                </a><a href="tel:+15551234567" class="info-item">
+                    <div class="info-icon">📱</div>
+                    <div class="info-text">
+                        <h4>Hotline Link</h4>
+                        <p>+1 (555) 123-4567</p>
+                    </div>
+                </a></div>
             <form class="contact-form" id="contactForm">
                 <div class="form-group"><label>Your Name</label><input type="text" id="name" required></div>
                 <div class="form-group"><label>E-mail Address</label><input type="email" id="email" required></div>
-                <div class="form-group"><label>Hardware Requirement</label><input type="text" id="subject" required></div>
-                <div class="form-group"><label>Configuration Details</label><textarea id="message" rows="4" required></textarea></div>
-                <button type="submit" class="submit-btn">Transmit Component Order</button>
+                <div class="form-group"><label>Hardware Requirement</label><input type="text" id="subject" required>
+                </div>
+                <div class="form-group"><label>Configuration Details</label><textarea id="message" rows="4"
+                        required></textarea></div><button type="submit" class="submit-btn">Transmit Component
+                    Order</button>
             </form>
         </div>
     </section>
 
     <footer class="footer">
         <div class="footer-content">
-            <div class="footer-brand"><div class="footer-logo"><span class="logo-text"><span class="prism">KNA</span><span class="flux">COMPUTERS</span></span></div><p class="footer-description">Forging unparalleled gaming and workstation configurations using elite graphics silicon processing systems.</p></div>
-            <div class="footer-section"><h4>Core Inventory</h4><div class="footer-links"><a href="#inventory">Nvidia RTX GPUs</a><a href="#inventory">AMD Radeon Cards</a><a href="#inventory">Gaming Laptops</a></div></div>
-            <div class="footer-section"><h4>Ecosystem</h4><div class="footer-links"><a href="#about">Our Philosophy</a><a href="#stats">Benchmarking Metrics</a><a href="#contact">Custom Support</a></div></div>
+            <div class="footer-brand">
+                <div class="footer-logo"><span class="logo-text"><span class="prism">KNA</span><span
+                            class="flux">COMPUTERS</span></span></div>
+                <p class="footer-description">Forging unparalleled gaming and workstation configurations using elite
+                    graphics silicon processing systems.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Core Inventory</h4>
+                <div class="footer-links"><a href="#inventory">Nvidia RTX GPUs</a><a href="#inventory">AMD Radeon
+                        Cards</a><a href="#inventory">Gaming Laptops</a></div>
+            </div>
+            <div class="footer-section">
+                <h4>Ecosystem</h4>
+                <div class="footer-links"><a href="#about">Our Philosophy</a><a href="#stats">Benchmarking Metrics</a><a
+                        href="#contact">Custom Support</a></div>
+            </div>
         </div>
-        <div class="footer-bottom"><div class="copyright">© 2026 KNA COMPUTERS. All systems loaded.</div></div>
+        <div class="footer-bottom">
+            <div class="copyright">© 2026 KNA COMPUTERS. All systems loaded.</div>
+        </div>
     </footer>
 
-    <df-messenger intent="WELCOME" chat-title="GBOT" agent-id="65d13231-7d5f-41f4-8543-f4a9c6ae9c02" language-code="en" horizontal-alignment="right" vertical-alignment="bottom"></df-messenger>
+<df-messenger
+    intent="WELCOME"
+    chat-title="KNA Assistant"
+    agent-id="65d13231-7d5f-41f4-8543-f4a9c6ae9c02"
+    language-code="en">
+</df-messenger>
 
-    <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+<script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+
+
     <script>
         // Hardware Data
         const skillsData = [
@@ -952,7 +1202,7 @@
         }
 
         function initCarousel() {
-            portfolioData.forEach((d, i) => { carousel.appendChild(createCarouselItem(d, i)); const ind = document.createElement('div'); ind.className = 'indicator'; if(i===0) ind.classList.add('active'); ind.dataset.index = i; ind.addEventListener('click',()=>goToSlide(i)); indicatorsContainer.appendChild(ind); });
+            portfolioData.forEach((d, i) => { carousel.appendChild(createCarouselItem(d, i)); const ind = document.createElement('div'); ind.className = 'indicator'; if (i === 0) ind.classList.add('active'); ind.dataset.index = i; ind.addEventListener('click', () => goToSlide(i)); indicatorsContainer.appendChild(ind); });
             updateCarousel();
         }
 
@@ -962,8 +1212,8 @@
             const total = items.length;
             items.forEach((item, idx) => {
                 let offset = idx - currentIndex;
-                if (offset > total/2) offset -= total;
-                if (offset < -total/2) offset += total;
+                if (offset > total / 2) offset -= total;
+                if (offset < -total / 2) offset += total;
                 const abs = Math.abs(offset);
                 if (abs === 0) { item.style.transform = 'translate(-50%, -50%) translateZ(0) scale(1)'; item.style.opacity = '1'; item.style.zIndex = '10'; }
                 else if (abs === 1) { item.style.transform = `translate(-50%, -50%) translateX(${offset * 400}px) translateZ(-200px) rotateY(${-offset * 30}deg) scale(0.85)`; item.style.opacity = '0.8'; item.style.zIndex = '5'; }
@@ -982,68 +1232,42 @@
 
         // Category filters
         document.querySelectorAll('.category-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
+            tab.addEventListener('click', function () {
                 document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
                 renderHardwareGrid(this.dataset.category);
             });
         });
 
-        // Nav toggle
+        // Enhanced Stats Grid with descriptions
+        const statsGrid = document.getElementById('statsGrid');
+        if (statsGrid) {
+            statsGrid.innerHTML = `
+                <div class="stat-card"><div class="stat-icon">🎮</div><div class="stat-number" data-target="12500">0</div><div class="stat-label">GPUs SHIPPED</div><div class="stat-description">Flagship & enthusiast graphics cards delivered worldwide</div></div>
+                <div class="stat-card"><div class="stat-icon">💻</div><div class="stat-number" data-target="8400">0</div><div class="stat-label">LAPTOPS DEPLOYED</div><div class="stat-description">Premium mobile workstations & gaming rigs</div></div>
+                <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-number" data-target="98">0</div><div class="stat-label">SATISFACTION RATE</div><div class="stat-description">Based on post-deployment performance reviews</div></div>
+            `;
+        }
+
+        function animateCounter(el) { const target = parseInt(el.dataset.target); let curr = 0; const step = target / 50; const timer = setInterval(() => { curr += step; if (curr >= target) { el.innerText = target + (el.closest('.stat-card')?.querySelector('.stat-label')?.innerText.includes('SATISFACTION') ? '%' : ''); clearInterval(timer); } else el.innerText = Math.floor(curr) + (el.closest('.stat-card')?.querySelector('.stat-label')?.innerText.includes('SATISFACTION') ? '%' : ''); }, 30); }
+
+        const observer = new IntersectionObserver((entries) => { entries.forEach(e => { if (e.isIntersecting) e.target.querySelectorAll('.stat-number').forEach(num => { if (!num.getAttribute('data-animated')) { num.setAttribute('data-animated', 'true'); animateCounter(num); } }); }); }, { threshold: 0.3 });
+        const statsSec = document.querySelector('.stats-section'); if (statsSec) observer.observe(statsSec);
+
+        // Nav toggle & scroll handlers
         const menuToggle = document.getElementById('menuToggle');
         const navMenu = document.getElementById('navMenu');
         menuToggle?.addEventListener('click', () => navMenu.classList.toggle('active'));
-
-        // Header scroll
         window.addEventListener('scroll', () => document.getElementById('header').classList.toggle('scrolled', window.scrollY > 100));
-
-        // Form submit
-        document.getElementById('contactForm')?.addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Request sent! A KNA engineer will contact you shortly.');
-            e.target.reset();
-        });
-
-        // Smooth nav links
+        document.getElementById('contactForm')?.addEventListener('submit', (e) => { e.preventDefault(); alert('Request sent! A KNA engineer will contact you shortly.'); e.target.reset(); });
         document.querySelectorAll('.nav-link').forEach(link => {
-            link.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if(target) window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' });
-                navMenu?.classList.remove('active');
-            });
+            link.addEventListener('click', function (e) { e.preventDefault(); const target = document.querySelector(this.getAttribute('href')); if (target) window.scrollTo({ top: target.offsetTop - 80, behavior: 'smooth' }); navMenu?.classList.remove('active'); });
         });
-
-        // Loader
         window.addEventListener('load', () => setTimeout(() => document.getElementById('loader')?.classList.add('hidden'), 800));
-
-        // Stats counters
-        const statsGrid = document.getElementById('statsGrid');
-        if(statsGrid) statsGrid.innerHTML = `<div class="stat-card"><div class="stat-icon">⚡</div><div class="stat-number" data-target="12500">0</div><div class="stat-label">GPUs Shipped</div></div><div class="stat-card"><div class="stat-icon">💻</div><div class="stat-number" data-target="8400">0</div><div class="stat-label">Laptops Deployed</div></div><div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-number" data-target="98">0</div><div class="stat-label">Satisfaction Rate</div></div>`;
-        
-        function animateCounter(el) { const target = parseInt(el.dataset.target); let curr = 0; const step = target / 50; const timer = setInterval(() => { curr += step; if(curr >= target) { el.innerText = target; clearInterval(timer); } else el.innerText = Math.floor(curr); }, 30); }
-        const observer = new IntersectionObserver((entries) => { entries.forEach(e => { if(e.isIntersecting) e.target.querySelectorAll('.stat-number').forEach(num => animateCounter(num)); }); }, { threshold: 0.3 });
-        const statsSec = document.querySelector('.stats-section'); if(statsSec) observer.observe(statsSec);
-
         renderHardwareGrid('all');
         initCarousel();
         setInterval(nextSlide, 6000);
-        
-        // CHATBOT RESPONSIVE FIX: Force position on all devices
-        function fixChatbotPosition() {
-            const df = document.querySelector('df-messenger');
-            if(df) {
-                df.style.position = 'fixed';
-                df.style.bottom = '20px';
-                df.style.right = '20px';
-                df.style.zIndex = '2147483647';
-                if(window.innerWidth <= 768) { df.style.bottom = '16px'; df.style.right = '16px'; }
-                try { if(df.shadowRoot) { const iframe = df.shadowRoot.querySelector('iframe'); if(iframe) { iframe.style.position = 'fixed'; iframe.style.bottom = df.style.bottom; iframe.style.right = df.style.right; iframe.style.zIndex = '2147483647'; } } } catch(e) {}
-            }
-        }
-        window.addEventListener('load', () => { setTimeout(fixChatbotPosition, 100); setTimeout(fixChatbotPosition, 500); });
-        window.addEventListener('resize', fixChatbotPosition);
-        new MutationObserver(fixChatbotPosition).observe(document.body, { childList: true, subtree: true });
+
     </script>
 </body>
 
