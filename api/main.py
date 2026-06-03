@@ -165,7 +165,7 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             user_input = params.get("product") or params.get("products")
 
             if not user_input:
-                # Cleaner Regex: Strips contextual prefixes WITHOUT deleting hardware structural numbers/letters
+                # Strips contextual prefixes WITHOUT deleting hardware structural numbers/letters
                 cleaned = re.sub(
                     r"\b(tell me|show me|price of|what is|check|need|want|under|below|budget|looking for|find|do you have)\b",
                     "",
@@ -184,15 +184,25 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
             clean_input = str(user_input).lower().strip()
             best_match = None
 
-            # CRITICAL BOUNDARY FIX: Split words up to check if hardware codes (e.g. "570") precisely match keys
+            # 1. EXTRACT CRITICAL HARDWARE NUMBERS (e.g., '470', '7900', '4060')
+            input_numbers = re.findall(r'\d+', clean_input)
             input_tokens = re.findall(r'[a-z0-9]+', clean_input)
             
             for key in PRICES:
                 key_tokens = re.findall(r'[a-z0-9]+', key)
-                # Ensure all parts of user query token actually intersect correctly
+                key_numbers = re.findall(r'\d+', key)
+                
+                # Rule A: If the user specified a model number, it MUST exist in the product key
+                if input_numbers:
+                    number_match = all(num in key_numbers for num in input_numbers)
+                else:
+                    number_match = True  # Fallback if no digits are in input (e.g. "HP OmniBook")
+
+                # Rule B: Check semantic intersection percentage
                 match_count = sum(1 for token in input_tokens if token in key_tokens)
-                if match_count > 0 and len(input_tokens) <= len(key_tokens):
-                    # Prioritize exact sub-token string integrity
+                
+                # Both the structural model numbers must match AND tokens must strongly intersect
+                if number_match and match_count >= len(input_tokens):
                     best_match = key
                     break
 
@@ -221,7 +231,8 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                     f"The estimated price of {product['display_name']} is {product['price']}."
                 )
 
-            # CASE 2: Not in inventory registry (e.g., RX 570, RX 470)
+            # CASE 2: Strict Fallback (Item completely missing from inventory)
+            # Check if they had a budget constraint to provide helpful alternatives
             budget_match = re.search(r'(\d+)\s*k', query_text)
             if budget_match:
                 user_budget = int(budget_match.group(1)) * 1000
@@ -238,15 +249,14 @@ async def handle_dialogflow_webhook(request: Request, background_tasks: Backgrou
                 if alternatives:
                     alt_list = ", ".join(alternatives[:3])
                     return services.build_fulfillment_response(
-                        f"I currently don't have pricing data or active stock for '{user_input}'.\n\n"
-                        f"However, since you are looking for items around that range, "
-                        f"here are alternatives under or close to your budget: {alt_list}."
+                        f"I'm sorry, '{user_input.upper()}' is currently not available in our inventory.\n\n"
+                        f"However, since you're looking around that budget range, here are some alternatives we have: {alt_list}."
                     )
 
+            # If no budget was given, simply tell them the item is not available
             return services.build_fulfillment_response(
-                f"I couldn't find pricing or stock data for '{user_input}' in our warehouse inventory catalog."
+                f"I'm sorry, '{user_input.upper()}' is currently not available in our inventory catalog."
             )
-
         # ----------------------------------------------------
         # CLEAR CART
         # ----------------------------------------------------
