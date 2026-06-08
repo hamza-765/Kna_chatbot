@@ -122,8 +122,4 @@ When an order intent handles successful processing, documents append cleanly to 
    5. Open an official upstream evaluation Pull Request for comprehensive reviewer feedback.
 
 ------------------------------
-## 📄 License
-Distributed under the terms of the MIT License. See individual repository metadata files for additional terms.
-------------------------------
-Now that your repository layout is clean, do you need help building out the exact JSON contents for your simplified vercel.json file to handle your new /api routes correctly, or do you want to implement CORS middleware inside main.py to let your local index.html contact your backend safely?
 
