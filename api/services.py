@@ -49,7 +49,7 @@ def generate_order_id() -> str:
     
     date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     
-    # Generate a random 4-digit number
+    
     random_suffix = random.randint(1000, 9999)
     
     return f"ORD-{date_str}-{random_suffix}"
@@ -57,22 +57,35 @@ def generate_order_id() -> str:
 def build_product_list_response(text_message: str, prices_registry: dict) -> dict:
     options_list = []
     
-    # Safeguard against missing or empty registry
     if prices_registry:
         for key, data in prices_registry.items():
-            # Formatting the data specifically for Kommunicate's template format
+            display_name = data["display_name"]
+            
+            
+            short_title = (
+                display_name.replace("Nvidia GeForce ", "")
+                .replace("AMD Radeon ", "")
+                .replace("Lenovo ", "")
+                .replace("Super", "Sup")
+            )
+            
+            
+            short_title = short_title[:20].strip()
+            
             options_list.append({
-                "title": data["display_name"],  # What shows on the button
-                "message": data["display_name"] # What gets sent back when clicked
+                "title": short_title,     
+                "message": display_name   
             })
+            
     
-    # 💡 FIX: Swapped out Dialogflow's native 'richContent' for Kommunicate's structure
+    options_list = options_list[:11]
+    
     custom_payload = {
         "message": text_message,
         "platform": "kommunicate",
         "metadata": {
             "contentType": "300",
-            "templateId": "6",  # Template 6 provides standard standalone quick reply chips
+            "templateId": "6",
             "payload": options_list
         }
     }
