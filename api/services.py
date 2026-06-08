@@ -54,46 +54,47 @@ def generate_order_id() -> str:
     
     return f"ORD-{date_str}-{random_suffix}"
 
-def build_product_list_response(text_message: str, prices_registry: dict) -> dict:
-    options_list = []
+def build_product_carousel_response(text_message: str, prices_registry: dict) -> dict:
+    """
+    Groups 21 items into a scrollable carousel of cards.
+    Each card holds 3 items, bypassing Facebook's flat-list limits.
+    """
+    cards = []
+    current_buttons = []
     
-    if prices_registry:
-        for key, data in prices_registry.items():
-            display_name = data["display_name"]
-            
-            
-            short_title = (
-                display_name.replace("Nvidia GeForce ", "")
-                .replace("AMD Radeon ", "")
-                .replace("Lenovo ", "")
-                .replace("Super", "Sup")
-            )
-            
-            
-            short_title = short_title[:20].strip()
-            
-            options_list.append({
-                "title": short_title,     
-                "message": display_name   
-            })
-            
     
-    options_list = options_list[:11]
+    all_buttons = []
+    for key, data in prices_registry.items():
+        all_buttons.append({
+            "name": data["display_name"][:20], 
+            "action": {
+                "type": "quickReply",
+                "payload": {
+                    "title": data["display_name"],
+                    "message": data["display_name"]
+                }
+            }
+        })
+
     
+    for i in range(0, len(all_buttons), 3):
+        chunk = all_buttons[i:i+3]
+        cards.append({
+            "title": f"Products Menu (Part {len(cards)+1})",
+            "subtitle": "Select a component to view price:",
+            "buttons": chunk
+        })
+        
+    
+    cards = cards[:10]
+
     custom_payload = {
-        "message": text_message,
         "platform": "kommunicate",
         "metadata": {
             "contentType": "300",
-            "templateId": "6",
-            "payload": options_list
+            "templateId": "10", 
+            "payload": cards
         }
     }
     
-    return {
-        "fulfillmentMessages": [
-            {
-                "payload": custom_payload
-            }
-        ]
-    }
+    return {"fulfillmentMessages": [{"payload": custom_payload}]}
