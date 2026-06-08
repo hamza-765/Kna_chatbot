@@ -1,7 +1,6 @@
 import uuid
 import random                                
 from datetime import datetime, timezone     
-# 💡 FIX: Added List to the typing imports so type hinting doesn't throw a NameError
 from typing import Tuple, Dict, Any, List
 
 def extract_webhook_data(payload: Dict[str, Any]) -> Tuple[str, str, Dict[str, Any]]:
@@ -10,14 +9,14 @@ def extract_webhook_data(payload: Dict[str, Any]) -> Tuple[str, str, Dict[str, A
     """
     query_result = payload.get("queryResult", {})
     
-    # Extract intent name
+    
     intent_name = query_result.get("intent", {}).get("displayName", "")
     
-    # Extract session ID (formats look like: "projects/.../agent/sessions/SESSION_ID")
+    
     session_full_path = payload.get("session", "")
     session_id = session_full_path.split("/")[-1] if session_full_path else "default_session"
     
-    # Extract parameters
+    
     parameters = query_result.get("parameters", {})
     
     return intent_name, session_id, parameters
@@ -47,7 +46,7 @@ def generate_order_id() -> str:
     Generates an order ID based on the current timestamp.
     Example output: ORD-20260525-4821
     """
-    # Modern, timezone-aware way to get UTC date string: YYYYMMDD
+    
     date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     
     # Generate a random 4-digit number
@@ -61,27 +60,25 @@ def build_product_list_response(text_message: str, prices_registry: dict) -> dic
     # Safeguard against missing or empty registry
     if prices_registry:
         for key, data in prices_registry.items():
+            # Formatting the data specifically for Kommunicate's template format
             options_list.append({
-                "text": data["display_name"]
+                "title": data["display_name"],  # What shows on the button
+                "message": data["display_name"] # What gets sent back when clicked
             })
     
+    # 💡 FIX: Swapped out Dialogflow's native 'richContent' for Kommunicate's structure
     custom_payload = {
-        "richContent": [[
-            {
-                "type": "chips",
-                "options": options_list
-            }
-        ]]
+        "message": text_message,
+        "platform": "kommunicate",
+        "metadata": {
+            "contentType": "300",
+            "templateId": "6",  # Template 6 provides standard standalone quick reply chips
+            "payload": options_list
+        }
     }
     
-    # Ensure this dictionary format matches what Dialogflow expects
     return {
         "fulfillmentMessages": [
-            {
-                "text": {
-                    "text": [text_message]
-                }
-            },
             {
                 "payload": custom_payload
             }
