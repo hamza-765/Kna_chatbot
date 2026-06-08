@@ -1,5 +1,3 @@
-Here is your updated, pro-level README.md perfectly matching your new Vercel-optimized project architecture where all application logic is housed inside the /api directory.
-------------------------------
 ## AI Order Management Chatbot
 An automated, asynchronous AI-powered conversational chatbot system that processes customer orders seamlessly through a chat interface. The system integrates Dialogflow for Natural Language Processing (NLP), Kommunicate for the frontend user interface widget, and an asynchronous FastAPI backend hosted serverless inside the /api directory on Vercel that safely streams transactions into MongoDB.
 ------------------------------
