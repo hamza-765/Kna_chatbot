@@ -889,38 +889,6 @@
             color: var(--text-dim);
         }
 
-        /* CHATBOT RESPONSIVE FIX */
-        /* =========================
-   DIALOGFLOW FIXED CHATBOT
-   ========================= */
-
-        df-messenger {
-            position: fixed !important;
-            bottom: 20px !important;
-            right: 20px !important;
-            z-index: 2147483647 !important;
-
-            --df-messenger-button-titlebar-color: #00a8ff;
-            --df-messenger-chat-background-color: #5a4f4f;
-            --df-messenger-font-color: #463737;
-            --df-messenger-send-icon: #00a8ff;
-
-            --df-messenger-chat-window-width: 380px;
-            --df-messenger-chat-window-height: 550px;
-        }
-
-        /* Mobile */
-        @media screen and (max-width: 768px) {
-
-            df-messenger {
-                bottom: calc(15px + env(safe-area-inset-bottom)) !important;
-                right: 15px !important;
-
-                --df-messenger-chat-window-width: 92vw;
-                --df-messenger-chat-window-height: 70vh;
-            }
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .menu-toggle {
@@ -1150,11 +1118,17 @@
         </div>
     </footer>
 
-    <df-messenger intent="WELCOME" chat-title="KNA Assistant" agent-id="65d13231-7d5f-41f4-8543-f4a9c6ae9c02"
-        language-code="en">
-    </df-messenger>
-
-    <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+<script type="text/javascript">
+    (function(d, m){
+        var kommunicateSettings = 
+            {"appId":"3edb638f894d2f29496aa21402e0f2335","popupWidget":true,"automaticChatOpenOnNavigation":true};
+        var s = document.createElement("script"); s.type = "text/javascript"; s.async = true;
+        s.src = "https://widget.kommunicate.io/kommunicate-widget-3.0.min.js";
+        var h = document.getElementsByTagName("head")[0]; h.appendChild(s);
+        window.kommunicate = m; m._globals = kommunicateSettings;
+    })(document, window.kommunicate || {});
+/* NOTE : Use web server to view HTML files as real-time update will not work if you directly open the HTML file in the browser. */
+</script>
 
 
     <script>
