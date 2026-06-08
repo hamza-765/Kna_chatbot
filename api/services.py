@@ -92,7 +92,7 @@ def build_product_list_response(text_message: str, prices_registry: dict) -> dic
     for i in range(0, len(all_buttons), 3):
         chunk = all_buttons[i:i+3]
         cards.append({
-            "title": f"Menu Selection (Part {len(cards)+1})",
+            "title": "Menu ",
             "subtitle": "Tap an item to view active pricing details:",
             "buttons": chunk
         })
